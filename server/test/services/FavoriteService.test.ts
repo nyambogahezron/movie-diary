@@ -14,7 +14,7 @@ describe('FavoriteService', () => {
 		await setupTestDatabase();
 		// Create test user and movie
 		const { user: testUser } = await createTestUser();
-		user = testUser;
+		user = testUser as UserType;
 
 		const movie = await createTestMovie({ title: 'Test Movie' }, user.id);
 		movieId = movie.id;

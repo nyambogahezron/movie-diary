@@ -1,3 +1,4 @@
 {
-	"cSpell.ignoreWords": ["Watchlist", "libsql", "watchlists"]
+	"cSpell.ignoreWords": ["Watchlist", "libsql", "watchlists"],
+	"postman.settings.dotenv-detection-notification-visibility": false
 }

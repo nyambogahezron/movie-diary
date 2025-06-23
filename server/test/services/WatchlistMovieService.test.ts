@@ -15,7 +15,7 @@ describe('WatchlistMovieService', () => {
 		await setupTestDatabase();
 		// Create test user, watchlist and movie
 		const { user: testUser } = await createTestUser();
-		user = testUser;
+		user = testUser as UserType;
 
 		const watchlist = await createTestWatchlist(
 			{ name: 'Test Watchlist' },

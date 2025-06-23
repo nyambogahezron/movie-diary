@@ -13,7 +13,7 @@ describe('WatchlistService', () => {
 		await setupTestDatabase();
 		// Create a test user
 		const { user: testUser } = await createTestUser();
-		user = testUser;
+		user = testUser as UserType;
 	});
 
 	afterAll(async () => {

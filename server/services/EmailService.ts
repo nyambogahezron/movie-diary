@@ -7,7 +7,7 @@ dotenv.config();
 
 export class EmailService {
 	private static transporter = nodemailer.createTransport(NodemailerConfig());
-	private static readonly fromEmail = process.env.SMTP_USER!;
+	private static readonly fromEmail = process.env.EMAIL!;
 	private static readonly clientUrl = process.env.CLIENT_URL!;
 
 	static async sendVerificationEmail(user: User, token: string): Promise<void> {
