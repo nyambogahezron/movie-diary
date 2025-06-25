@@ -12,7 +12,7 @@
 		"build": "tsc",
 		"migrations": "ts-node scripts/run-migrations.ts",
 		"setup": "bun install && bun run migrations",
-		"migrations:refresh": "rm db/database.sqlite3 && ts-node scripts/run-migrations.ts"
+		"migrations:refresh": "rm db/database.sqlite3 &&  rm -rf db/migrations && -node scripts/run-migrations.ts"
 	},
 	"author": "Hezron Nyamboga",
 	"license": "ISC",

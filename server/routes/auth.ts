@@ -12,7 +12,9 @@ router.post(
 	AuthController.register
 );
 router.post('/login', validate(authValidation.login), AuthController.login);
+
 router.get('/me', authMiddleware, AuthController.getCurrentUser);
+
 router.post(
 	'/refresh-token',
 	validate(authValidation.refreshToken),
@@ -20,9 +22,10 @@ router.post(
 );
 
 router.get('/verify-email', AuthController.verifyEmail);
+
 router.post(
 	'/resend-verification',
-	authMiddleware,
+	validate(authValidation.resendVerification),
 	AuthController.resendVerificationEmail
 );
 
@@ -31,6 +34,7 @@ router.post(
 	validate(authValidation.requestPasswordReset),
 	AuthController.requestPasswordReset
 );
+
 router.post(
 	'/reset-password',
 	validate(authValidation.resetPassword),

@@ -7,6 +7,7 @@ import { db } from '../db';
 import { users } from '../db/schema';
 import { eq } from 'drizzle-orm';
 import { EmailService } from '../services/EmailService';
+import { User } from '../helpers/User';
 
 export class AuthController {
 	static register = AsyncHandler(async (req: Request, res: Response) => {
@@ -199,31 +200,37 @@ export class AuthController {
 
 	static resendVerificationEmail = AsyncHandler(
 		async (req: Request, res: Response) => {
-			if (!req.user) {
-				res.status(401).json({ error: 'Not authenticated' });
+			const { email } = req.body;
+
+			if (!email) {
+				res.status(400).json({ error: 'Email is required' });
 				return;
 			}
 
-			// Generate new verification token
+			const user = await User.findByEmail(email);
+
+			if (!user) {
+				throw new BadRequestError('User not found');
+			}
+
+			if (user.isEmailVerified) {
+				throw new BadRequestError('Email already verified');
+			}
+
 			const emailVerificationToken = crypto.randomBytes(32).toString('hex');
 			const emailVerificationExpires = new Date(
 				Date.now() + 24 * 60 * 60 * 1000
 			).toISOString();
 
-			// Update user with new token
 			await db
 				.update(users)
 				.set({
 					emailVerificationToken,
 					emailVerificationExpires,
 				})
-				.where(eq(users.id, req.user.id));
+				.where(eq(users.id, user.id));
 
-			// Send verification email
-			await EmailService.sendVerificationEmail(
-				req.user,
-				emailVerificationToken
-			);
+			await EmailService.sendVerificationEmail(user, emailVerificationToken);
 
 			res.status(200).json({
 				message: 'Verification email sent successfully',

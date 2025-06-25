@@ -115,4 +115,13 @@ export const authValidation = {
 			.withMessage('Must provide a valid email address')
 			.normalizeEmail(),
 	],
+
+	resendVerification: [
+		body('email')
+			.notEmpty()
+			.withMessage('Email is required')
+			.isEmail()
+			.withMessage('Must provide a valid email address')
+			.normalizeEmail(),
+	],
 };

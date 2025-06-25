@@ -3,7 +3,12 @@ import { createTestApp } from '../test-app';
 import { setupTestDatabase, teardownTestDatabase } from '../setup';
 import { db } from '../../db/test-db';
 import * as schema from '../../db/schema';
-import { createTestUser, createTestWatchlist, createTestMovie } from '../utils';
+import {
+	createTestUser,
+	createTestWatchlist,
+	createTestMovie,
+	attachAuthCookie,
+} from '../utils';
 import { eq, and } from 'drizzle-orm';
 
 describe('WatchlistMovieController', () => {

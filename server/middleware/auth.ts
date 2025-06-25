@@ -16,7 +16,7 @@ export const authMiddleware = async (
 	next: NextFunction
 ): Promise<void> => {
 	try {
-		const accessToken = req.cookies.accessToken;
+		const accessToken = req.cookies?.accessToken;
 
 		if (!accessToken) {
 			res.status(401).json({ error: 'No authentication token provided' });
@@ -26,7 +26,6 @@ export const authMiddleware = async (
 		try {
 			const user = await AuthService.verifyToken(accessToken);
 
-			// Check if email is verified (except for verification routes)
 			const isVerificationRoute =
 				req.originalUrl.includes('/verify-email') ||
 				req.originalUrl.includes('/resend-verification');
@@ -65,7 +64,11 @@ export const optionalAuthMiddleware = async (
 	next: NextFunction
 ): Promise<void> => {
 	try {
-		const accessToken = req.cookies.accessToken;
+		let accessToken = req.cookies?.accessToken;
+
+		if (!accessToken && req.headers.authorization?.startsWith('Bearer ')) {
+			accessToken = req.headers.authorization.split(' ')[1];
+		}
 
 		if (accessToken) {
 			try {

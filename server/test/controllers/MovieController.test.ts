@@ -3,7 +3,7 @@ import { createTestApp } from '../test-app';
 import { setupTestDatabase, teardownTestDatabase } from '../setup';
 import { db } from '../../db/test-db';
 import * as schema from '../../db/schema';
-import { createTestUser, createTestMovie } from '../utils';
+import { createTestUser, createTestMovie, attachAuthCookie } from '../utils';
 import { sql } from 'drizzle-orm';
 
 describe('MovieController', () => {
@@ -40,10 +40,10 @@ describe('MovieController', () => {
 				genres: JSON.stringify(['Action', 'Drama']),
 			};
 
-			const response = await request
-				.post('/api/movies')
-				.set('Authorization', `Bearer ${authToken}`)
-				.send(movieData);
+			const response = await attachAuthCookie(
+				request.post('/api/movies'),
+				authToken
+			).send(movieData);
 
 			expect(response.status).toBe(201);
 			expect(response.body.message).toBe('Movie created successfully');
@@ -58,13 +58,13 @@ describe('MovieController', () => {
 		});
 
 		it('should return 400 if required fields are missing', async () => {
-			const response = await request
-				.post('/api/movies')
-				.set('Authorization', `Bearer ${authToken}`)
-				.send({
-					// Missing required fields
-					posterPath: '/test/path.jpg',
-				});
+			const response = await attachAuthCookie(
+				request.post('/api/movies'),
+				authToken
+			).send({
+				// Missing required fields
+				posterPath: '/test/path.jpg',
+			});
 
 			expect(response.status).toBe(400);
 			expect(response.body).toHaveProperty('error');
@@ -89,9 +89,10 @@ describe('MovieController', () => {
 		});
 
 		it('should get all movies for the user', async () => {
-			const response = await request
-				.get('/api/movies')
-				.set('Authorization', `Bearer ${authToken}`);
+			const response = await attachAuthCookie(
+				request.get('/api/movies'),
+				authToken
+			);
 
 			expect(response.status).toBe(200);
 			expect(response.body.data).toBeInstanceOf(Array);
@@ -120,9 +121,10 @@ describe('MovieController', () => {
 		});
 
 		it('should get a movie by id', async () => {
-			const response = await request
-				.get(`/api/movies/${movieId}`)
-				.set('Authorization', `Bearer ${authToken}`);
+			const response = await attachAuthCookie(
+				request.get(`/api/movies/${movieId}`),
+				authToken
+			);
 
 			expect(response.status).toBe(200);
 			expect(response.body.data).toHaveProperty('id', movieId);

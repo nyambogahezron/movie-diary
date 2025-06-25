@@ -71,3 +71,8 @@ export async function createTestWatchlist(watchlistData = {}, userId: number) {
 
 	return insertedWatchlist[0];
 }
+
+// Helper function to attach authentication cookie to supertest request
+export function attachAuthCookie(request: any, token: string) {
+	return request.set('Cookie', [`accessToken=${token}`]);
+}

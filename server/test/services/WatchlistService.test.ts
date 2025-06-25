@@ -10,19 +10,19 @@ describe('WatchlistService', () => {
 	let user: UserType;
 
 	beforeAll(async () => {
+		// Setup fresh database for each test suite
 		await setupTestDatabase();
-		// Create a test user
-		const { user: testUser } = await createTestUser();
-		user = testUser as UserType;
-	});
-
-	afterAll(async () => {
-		await teardownTestDatabase();
 	});
 
 	beforeEach(async () => {
-		// Clear watchlists before each test
+		// Clear any existing data
+		await db.delete(schema.watchlistMovies);
 		await db.delete(schema.watchlists);
+		await db.delete(schema.users);
+
+		// Create a test user for each test
+		const { user: testUser } = await createTestUser();
+		user = testUser as UserType;
 	});
 
 	describe('createWatchlist', () => {

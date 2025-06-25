@@ -1,5 +1,6 @@
 import express from 'express';
 import cors from 'cors';
+import cookieParser from 'cookie-parser';
 import authRoutes from '../routes/auth';
 import movieRoutes from '../routes/movies';
 import watchlistRoutes from '../routes/watchlists';
@@ -22,6 +23,7 @@ export function createTestApp() {
 	// Middleware
 	app.use(express.json());
 	app.use(cors());
+	app.use(cookieParser());
 
 	// Routes
 	app.use('/api/auth', authRoutes);

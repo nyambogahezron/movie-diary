@@ -3,7 +3,11 @@ import { createTestApp } from '../test-app';
 import { setupTestDatabase, teardownTestDatabase } from '../setup';
 import { db } from '../../db/test-db';
 import * as schema from '../../db/schema';
-import { createTestUser, createTestWatchlist } from '../utils';
+import {
+	createTestUser,
+	createTestWatchlist,
+	attachAuthCookie,
+} from '../utils';
 import { sql } from 'drizzle-orm';
 
 describe('WatchlistController', () => {
@@ -37,10 +41,10 @@ describe('WatchlistController', () => {
 				isPublic: true,
 			};
 
-			const response = await request
-				.post('/api/watchlists')
-				.set('Authorization', `Bearer ${authToken}`)
-				.send(watchlistData);
+			const response = await attachAuthCookie(
+				request.post('/api/watchlists'),
+				authToken
+			).send(watchlistData);
 
 			expect(response.status).toBe(201);
 			expect(response.body.message).toBe('Watchlist created successfully');
@@ -56,13 +60,13 @@ describe('WatchlistController', () => {
 		});
 
 		it('should return 400 if required fields are missing', async () => {
-			const response = await request
-				.post('/api/watchlists')
-				.set('Authorization', `Bearer ${authToken}`)
-				.send({
-					// Missing name
-					description: 'Description only',
-				});
+			const response = await attachAuthCookie(
+				request.post('/api/watchlists'),
+				authToken
+			).send({
+				// Missing name
+				description: 'Description only',
+			});
 
 			expect(response.status).toBe(400);
 			expect(response.body).toHaveProperty('error');
@@ -86,9 +90,10 @@ describe('WatchlistController', () => {
 		});
 
 		it('should get all watchlists for the user', async () => {
-			const response = await request
-				.get('/api/watchlists')
-				.set('Authorization', `Bearer ${authToken}`);
+			const response = await attachAuthCookie(
+				request.get('/api/watchlists'),
+				authToken
+			);
 
 			expect(response.status).toBe(200);
 			expect(response.body.data).toBeInstanceOf(Array);
@@ -117,9 +122,10 @@ describe('WatchlistController', () => {
 		});
 
 		it('should get a watchlist by id', async () => {
-			const response = await request
-				.get(`/api/watchlists/${watchlistId}`)
-				.set('Authorization', `Bearer ${authToken}`);
+			const response = await attachAuthCookie(
+				request.get(`/api/watchlists/${watchlistId}`),
+				authToken
+			);
 
 			expect(response.status).toBe(200);
 			expect(response.body.data).toHaveProperty('id', watchlistId);
@@ -155,10 +161,10 @@ describe('WatchlistController', () => {
 				isPublic: true,
 			};
 
-			const response = await request
-				.put(`/api/watchlists/${watchlistId}`)
-				.set('Authorization', `Bearer ${authToken}`)
-				.send(updateData);
+			const response = await attachAuthCookie(
+				request.put(`/api/watchlists/${watchlistId}`),
+				authToken
+			).send(updateData);
 
 			expect(response.status).toBe(200);
 			expect(response.body.message).toBe('Watchlist updated successfully');
@@ -181,10 +187,10 @@ describe('WatchlistController', () => {
 		});
 
 		it('should return 404 if watchlist not found', async () => {
-			const response = await request
-				.put('/api/watchlists/99999')
-				.set('Authorization', `Bearer ${authToken}`)
-				.send({ name: 'Updated Name' });
+			const response = await attachAuthCookie(
+				request.put('/api/watchlists/99999'),
+				authToken
+			).send({ name: 'Updated Name' });
 
 			expect(response.status).toBe(404);
 			expect(response.body).toHaveProperty('error');
@@ -204,9 +210,10 @@ describe('WatchlistController', () => {
 		});
 
 		it('should delete a watchlist', async () => {
-			const response = await request
-				.delete(`/api/watchlists/${watchlistId}`)
-				.set('Authorization', `Bearer ${authToken}`);
+			const response = await attachAuthCookie(
+				request.delete(`/api/watchlists/${watchlistId}`),
+				authToken
+			);
 
 			expect(response.status).toBe(200);
 			expect(response.body.message).toBe('Watchlist deleted successfully');
@@ -220,9 +227,10 @@ describe('WatchlistController', () => {
 		});
 
 		it('should return 404 if watchlist not found', async () => {
-			const response = await request
-				.delete('/api/watchlists/99999')
-				.set('Authorization', `Bearer ${authToken}`);
+			const response = await attachAuthCookie(
+				request.delete('/api/watchlists/99999'),
+				authToken
+			);
 
 			expect(response.status).toBe(404);
 			expect(response.body).toHaveProperty('error');
