@@ -1,7 +1,8 @@
 import { db } from '../db';
 import { movies } from '../db/schema';
-import { eq, like, desc, asc, and, sql } from 'drizzle-orm';
+import { eq, like, desc, asc, and } from 'drizzle-orm';
 import { Movie as MovieType, MovieInput, SearchInput } from '../types';
+import { BadRequestError } from '../utils/errors';
 
 export class Movie {
 	static async create(
@@ -35,12 +36,12 @@ export class Movie {
 			})
 			.returning();
 
-		return result[0] as unknown as MovieType;
+		return result[0];
 	}
 
 	static async findById(id: number): Promise<MovieType | undefined> {
 		const result = await db.select().from(movies).where(eq(movies.id, id));
-		return result[0] as unknown as MovieType;
+		return result[0];
 	}
 
 	static async findByTmdbId(
@@ -51,7 +52,7 @@ export class Movie {
 			.select()
 			.from(movies)
 			.where(and(eq(movies.tmdbId, tmdbId), eq(movies.userId, userId)));
-		return result[0] as unknown as MovieType;
+		return result[0];
 	}
 
 	static async findByUserId(
@@ -86,41 +87,46 @@ export class Movie {
 			.limit(params?.limit ?? 100)
 			.offset(params?.offset ?? 0);
 
-		return result as unknown as MovieType[];
+		return result;
 	}
 
-	static async update(
-		id: number,
-		movieData: Partial<MovieInput>
-	): Promise<void> {
-		// Create a cleaned copy of the data to modify
-		const dataToUpdate: Record<string, any> = {};
-
-		// Copy allowed properties
-		if (movieData.title !== undefined) dataToUpdate.title = movieData.title;
-		if (movieData.tmdbId !== undefined) dataToUpdate.tmdbId = movieData.tmdbId;
-		if (movieData.posterPath !== undefined)
-			dataToUpdate.posterPath = movieData.posterPath;
-		if (movieData.releaseDate !== undefined)
-			dataToUpdate.releaseDate = movieData.releaseDate;
-		if (movieData.overview !== undefined)
-			dataToUpdate.overview = movieData.overview;
-		if (movieData.rating !== undefined) dataToUpdate.rating = movieData.rating;
-		if (movieData.watchDate !== undefined)
-			dataToUpdate.watchDate = movieData.watchDate;
-		if (movieData.review !== undefined) dataToUpdate.review = movieData.review;
-		if (movieData.userId !== undefined) dataToUpdate.userId = movieData.userId;
-
-		if (Array.isArray(movieData.genres)) {
-			dataToUpdate.genres = JSON.stringify(movieData.genres);
+	static async update(id: number, movieData: Partial<MovieInput>) {
+		const existingMovie = await this.findById(id);
+		if (!existingMovie) {
+			throw new BadRequestError(`Movie with ID ${id} not found`);
 		}
 
-		dataToUpdate.updatedAt = new Date().toISOString();
+		const title = movieData.title || existingMovie.title;
+		const tmdbId = movieData.tmdbId || existingMovie.tmdbId;
+		const posterPath = movieData.posterPath || existingMovie.posterPath;
+		const releaseDate = movieData.releaseDate || existingMovie.releaseDate;
+		const overview = movieData.overview || existingMovie.overview;
+		const rating = movieData.rating ?? existingMovie.rating;
+		const watchDate = movieData.watchDate || existingMovie.watchDate;
+		const review = movieData.review || existingMovie.review;
+		const genres =
+			movieData.genres !== undefined
+				? movieData.genres
+					? JSON.stringify(movieData.genres)
+					: null
+				: existingMovie.genres;
+
+		const dataToUpdate = {
+			title,
+			tmdbId,
+			posterPath,
+			releaseDate,
+			overview,
+			rating,
+			watchDate,
+			review,
+			genres,
+		};
 
 		await db.update(movies).set(dataToUpdate).where(eq(movies.id, id));
 	}
 
-	static async delete(id: number): Promise<void> {
+	static async delete(id: number) {
 		await db.delete(movies).where(eq(movies.id, id));
 	}
 }

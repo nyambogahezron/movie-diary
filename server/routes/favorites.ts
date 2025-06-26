@@ -6,9 +6,13 @@ const router = express.Router();
 
 router.use(authMiddleware);
 
-router.post('/', FavoriteController.addFavorite);
-router.get('/', FavoriteController.getFavorites);
+router
+	.route('/')
+	.post(FavoriteController.addFavorite)
+	.get(FavoriteController.getFavorites);
+
 router.delete('/:movieId', FavoriteController.removeFavorite);
+
 router.get('/:movieId/status', FavoriteController.checkFavorite);
 
 export default router;

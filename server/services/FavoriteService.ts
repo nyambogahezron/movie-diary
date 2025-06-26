@@ -9,7 +9,7 @@ import {
 } from '../types';
 
 export class FavoriteService {
-	static async addFavorite(movieId: number, user: User): Promise<FavoriteType> {
+	static async addFavorite(movieId: number, user: User) {
 		const movie = await Movie.findById(movieId);
 
 		if (!movie) {
@@ -31,7 +31,7 @@ export class FavoriteService {
 		});
 	}
 
-	static async removeFavorite(movieId: number, user: User): Promise<void> {
+	static async removeFavorite(movieId: number, user: User) {
 		const movie = await Movie.findById(movieId);
 
 		if (!movie) {
@@ -47,10 +47,7 @@ export class FavoriteService {
 		await Favorite.delete(user.id, movieId);
 	}
 
-	static async getFavoriteMovies(
-		user: User,
-		params?: SearchInput
-	): Promise<MovieType[]> {
+	static async getFavoriteMovies(user: User, params?: SearchInput) {
 		let movies = await Favorite.getFavoriteMoviesByUserId(user.id);
 
 		if (params?.search) {
@@ -62,7 +59,6 @@ export class FavoriteService {
 			);
 		}
 
-		// Apply sorting if provided
 		if (params?.sortBy) {
 			const sortField = params.sortBy as keyof MovieType;
 			const sortOrder = params?.sortOrder === 'desc' ? -1 : 1;
@@ -76,7 +72,6 @@ export class FavoriteService {
 			});
 		}
 
-		// Apply pagination if provided
 		if (params?.offset !== undefined || params?.limit !== undefined) {
 			const offset = params?.offset || 0;
 			const limit = params?.limit || movies.length;
@@ -86,7 +81,7 @@ export class FavoriteService {
 		return movies;
 	}
 
-	static async isFavorite(movieId: number, user: User): Promise<boolean> {
+	static async isFavorite(movieId: number, user: User) {
 		const movie = await Movie.findById(movieId);
 
 		if (!movie) {

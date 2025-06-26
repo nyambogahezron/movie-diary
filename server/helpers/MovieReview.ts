@@ -1,12 +1,12 @@
 import { db } from '../db';
 import { movieReviews } from '../db/schema';
 import { eq, and, desc, sql } from 'drizzle-orm';
-import { MovieReview as MovieReviewType, MovieReviewInput } from '../types';
+import { MovieReviewInput } from '../types';
 
 export class MovieReview {
 	static async create(
 		data: MovieReviewInput & { userId: number; movieId: number }
-	): Promise<MovieReviewType> {
+	) {
 		const { userId, movieId, content, rating, isPublic = true } = data;
 
 		const [newReview] = await db
@@ -20,19 +20,19 @@ export class MovieReview {
 			})
 			.returning();
 
-		return newReview as MovieReviewType;
+		return newReview;
 	}
 
-	static async findById(id: number): Promise<MovieReviewType | null> {
+	static async findById(id: number) {
 		const review = await db
 			.select()
 			.from(movieReviews)
 			.where(eq(movieReviews.id, id))
 			.get();
-		return (review as MovieReviewType) || null;
+		return review;
 	}
 
-	static async findByMovieId(movieId: number): Promise<MovieReviewType[]> {
+	static async findByMovieId(movieId: number) {
 		const reviews = await db
 			.select()
 			.from(movieReviews)
@@ -40,12 +40,10 @@ export class MovieReview {
 			.orderBy(desc(movieReviews.createdAt))
 			.all();
 
-		return reviews as MovieReviewType[];
+		return reviews;
 	}
 
-	static async findPublicByMovieId(
-		movieId: number
-	): Promise<MovieReviewType[]> {
+	static async findPublicByMovieId(movieId: number) {
 		const reviews = await db
 			.select()
 			.from(movieReviews)
@@ -55,13 +53,10 @@ export class MovieReview {
 			.orderBy(desc(movieReviews.createdAt))
 			.all();
 
-		return reviews as MovieReviewType[];
+		return reviews;
 	}
 
-	static async findByUserAndMovie(
-		userId: number,
-		movieId: number
-	): Promise<MovieReviewType | null> {
+	static async findByUserAndMovie(userId: number, movieId: number) {
 		const review = await db
 			.select()
 			.from(movieReviews)
@@ -70,10 +65,10 @@ export class MovieReview {
 			)
 			.get();
 
-		return (review as MovieReviewType) || null;
+		return review;
 	}
 
-	static async findByUserId(userId: number): Promise<MovieReviewType[]> {
+	static async findByUserId(userId: number) {
 		const reviews = await db
 			.select()
 			.from(movieReviews)
@@ -81,13 +76,10 @@ export class MovieReview {
 			.orderBy(desc(movieReviews.createdAt))
 			.all();
 
-		return reviews as MovieReviewType[];
+		return reviews;
 	}
 
-	static async update(
-		id: number,
-		data: Partial<MovieReviewInput>
-	): Promise<void> {
+	static async update(id: number, data: Partial<MovieReviewInput>) {
 		await db
 			.update(movieReviews)
 			.set({
@@ -98,14 +90,14 @@ export class MovieReview {
 			.run();
 	}
 
-	static async delete(id: number): Promise<void> {
+	static async delete(id: number) {
 		await db.delete(movieReviews).where(eq(movieReviews.id, id)).run();
 	}
 
 	static async getReviewsWithUserDetails(
 		movieId: number,
 		includePrivate = false
-	): Promise<any[]> {
+	) {
 		const query = includePrivate
 			? sql`
         SELECT 
@@ -130,6 +122,6 @@ export class MovieReview {
         ORDER BY mr.created_at DESC
       `;
 
-		return (await db.all(query)) as any[];
+		return await db.all(query);
 	}
 }

@@ -113,22 +113,22 @@ export class User {
 			.where(eq(users.emailVerificationToken, verificationToken));
 
 		if (result.length === 0) {
-			return undefined;
+			throw new BadRequestError('Invalid email verification token');
 		}
 
 		const user = result[0] as UserType;
 
-		if (!user.isEmailVerified) {
-			throw new BadRequestError(
-				'Email is already verified or verification token is invalid'
-			);
+		if (user.isEmailVerified) {
+			throw new BadRequestError('Email is already verified');
 		}
+
+		// TODO: Check if the token is a valid token
 
 		if (
 			user.emailVerificationExpires &&
 			new Date(user.emailVerificationExpires) < new Date()
 		) {
-			return undefined;
+			throw new BadRequestError('Email verification token has expired');
 		}
 
 		// Mark email as verified

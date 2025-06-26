@@ -1,13 +1,9 @@
 import { db } from '../db';
 import { favorites, movies } from '../db/schema';
 import { eq, and } from 'drizzle-orm';
-import { Favorite as FavoriteType, Movie as MovieType } from '../types';
 
 export class Favorite {
-	static async create(favoriteData: {
-		userId: number;
-		movieId: number;
-	}): Promise<FavoriteType> {
+	static async create(favoriteData: { userId: number; movieId: number }) {
 		const existingFavorite = await db
 			.select()
 			.from(favorites)
@@ -19,7 +15,7 @@ export class Favorite {
 			);
 
 		if (existingFavorite.length > 0) {
-			return existingFavorite[0] as unknown as FavoriteType;
+			return existingFavorite[0];
 		}
 
 		const result = await db
@@ -30,19 +26,16 @@ export class Favorite {
 			})
 			.returning();
 
-		return result[0] as unknown as FavoriteType;
+		return result[0];
 	}
 
-	static async findByUserIdAndMovieId(
-		userId: number,
-		movieId: number
-	): Promise<FavoriteType | undefined> {
+	static async findByUserIdAndMovieId(userId: number, movieId: number) {
 		const result = await db
 			.select()
 			.from(favorites)
 			.where(and(eq(favorites.userId, userId), eq(favorites.movieId, movieId)));
 
-		return result[0] as unknown as FavoriteType;
+		return result[0];
 	}
 
 	static async delete(userId: number, movieId: number): Promise<void> {
@@ -51,7 +44,7 @@ export class Favorite {
 			.where(and(eq(favorites.userId, userId), eq(favorites.movieId, movieId)));
 	}
 
-	static async getFavoriteMoviesByUserId(userId: number): Promise<MovieType[]> {
+	static async getFavoriteMoviesByUserId(userId: number) {
 		const result = await db
 			.select({
 				movie: movies,
@@ -60,10 +53,10 @@ export class Favorite {
 			.innerJoin(movies, eq(favorites.movieId, movies.id))
 			.where(eq(favorites.userId, userId));
 
-		return result.map((r) => r.movie) as unknown as MovieType[];
+		return result.map((r) => r.movie);
 	}
 
-	static async isFavorite(userId: number, movieId: number): Promise<boolean> {
+	static async isFavorite(userId: number, movieId: number) {
 		const favorite = await this.findByUserIdAndMovieId(userId, movieId);
 		return !!favorite;
 	}
