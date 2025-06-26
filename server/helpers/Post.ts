@@ -4,9 +4,7 @@ import { eq, like, desc, asc, and, sql } from 'drizzle-orm';
 import { Post as PostType, PostInput, PostSearchInput } from '../types';
 
 export class Post {
-	static async create(
-		postData: PostInput & { userId: number }
-	): Promise<PostType> {
+	static async create(postData: PostInput & { userId: number }) {
 		const result = await db
 			.insert(posts)
 			.values({
@@ -24,15 +22,12 @@ export class Post {
 		return result[0] as unknown as PostType;
 	}
 
-	static async findById(id: number): Promise<PostType | undefined> {
+	static async findById(id: number) {
 		const result = await db.select().from(posts).where(eq(posts.id, id));
 		return result[0] as unknown as PostType;
 	}
 
-	static async findByUserId(
-		userId: number,
-		params?: PostSearchInput
-	): Promise<PostType[]> {
+	static async findByUserId(userId: number, params?: PostSearchInput) {
 		const conditions = [eq(posts.userId, userId)];
 
 		if (params?.search) {
@@ -78,7 +73,7 @@ export class Post {
 	static async getFeed(
 		currentUserId?: number | null,
 		params?: PostSearchInput
-	): Promise<PostType[]> {
+	) {
 		const result = await db
 			.select()
 			.from(posts)
@@ -90,7 +85,7 @@ export class Post {
 		return result as unknown as PostType[];
 	}
 
-	static async update(id: number, postData: Partial<PostInput>): Promise<void> {
+	static async update(id: number, postData: Partial<PostInput>) {
 		const updateData: Record<string, any> = {};
 
 		if (postData.title !== undefined) updateData.title = postData.title;
@@ -102,11 +97,11 @@ export class Post {
 		await db.update(posts).set(updateData).where(eq(posts.id, id));
 	}
 
-	static async delete(id: number): Promise<void> {
+	static async delete(id: number) {
 		await db.delete(posts).where(eq(posts.id, id));
 	}
 
-	static async incrementLikes(id: number): Promise<void> {
+	static async incrementLikes(id: number) {
 		await db
 			.update(posts)
 			.set({
@@ -115,7 +110,7 @@ export class Post {
 			.where(eq(posts.id, id));
 	}
 
-	static async decrementLikes(id: number): Promise<void> {
+	static async decrementLikes(id: number) {
 		await db
 			.update(posts)
 			.set({
@@ -124,7 +119,7 @@ export class Post {
 			.where(eq(posts.id, id));
 	}
 
-	static async incrementComments(id: number): Promise<void> {
+	static async incrementComments(id: number) {
 		await db
 			.update(posts)
 			.set({
@@ -133,7 +128,7 @@ export class Post {
 			.where(eq(posts.id, id));
 	}
 
-	static async decrementComments(id: number): Promise<void> {
+	static async decrementComments(id: number) {
 		await db
 			.update(posts)
 			.set({
@@ -145,7 +140,7 @@ export class Post {
 	static async getPostsWithLikeStatus(
 		userId: number,
 		params?: PostSearchInput
-	): Promise<(PostType & { hasLiked: boolean })[]> {
+	) {
 		const postsResult = await this.findByUserId(userId, params);
 
 		if (postsResult.length === 0) {

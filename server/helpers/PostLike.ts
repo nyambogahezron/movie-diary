@@ -4,7 +4,7 @@ import { eq, and } from 'drizzle-orm';
 import { PostLike as PostLikeType } from '../types';
 
 export class PostLike {
-	static async create(userId: number, postId: number): Promise<PostLikeType> {
+	static async create(userId: number, postId: number) {
 		const result = await db
 			.insert(postLikes)
 			.values({
@@ -16,10 +16,7 @@ export class PostLike {
 		return result[0] as unknown as PostLikeType;
 	}
 
-	static async findByUserAndPost(
-		userId: number,
-		postId: number
-	): Promise<PostLikeType | undefined> {
+	static async findByUserAndPost(userId: number, postId: number) {
 		const result = await db
 			.select()
 			.from(postLikes)
@@ -28,20 +25,17 @@ export class PostLike {
 		return result[0] as unknown as PostLikeType;
 	}
 
-	static async delete(id: number): Promise<void> {
+	static async delete(id: number) {
 		await db.delete(postLikes).where(eq(postLikes.id, id));
 	}
 
-	static async deleteByUserAndPost(
-		userId: number,
-		postId: number
-	): Promise<void> {
+	static async deleteByUserAndPost(userId: number, postId: number) {
 		await db
 			.delete(postLikes)
 			.where(and(eq(postLikes.userId, userId), eq(postLikes.postId, postId)));
 	}
 
-	static async getLikeCount(postId: number): Promise<number> {
+	static async getLikeCount(postId: number) {
 		const result = await db
 			.select()
 			.from(postLikes)
@@ -50,7 +44,7 @@ export class PostLike {
 		return result.length;
 	}
 
-	static async getLikedByUser(userId: number): Promise<PostLikeType[]> {
+	static async getLikedByUser(userId: number) {
 		const result = await db
 			.select()
 			.from(postLikes)

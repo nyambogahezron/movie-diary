@@ -1,12 +1,12 @@
 import { db } from '../db';
 import { postComments, users } from '../db/schema';
 import { eq, desc, and } from 'drizzle-orm';
-import { PostComment as PostCommentType, PostCommentInput } from '../types';
+import { PostCommentInput } from '../types';
 
 export class PostComment {
 	static async create(
 		commentData: PostCommentInput & { userId: number; postId: number }
-	): Promise<PostCommentType> {
+	) {
 		const result = await db
 			.insert(postComments)
 			.values({
@@ -16,19 +16,19 @@ export class PostComment {
 			})
 			.returning();
 
-		return result[0] as unknown as PostCommentType;
+		return result[0];
 	}
 
-	static async findById(id: number): Promise<PostCommentType | undefined> {
+	static async findById(id: number) {
 		const result = await db
 			.select()
 			.from(postComments)
 			.where(eq(postComments.id, id));
 
-		return result[0] as unknown as PostCommentType;
+		return result[0];
 	}
 
-	static async findByPostId(postId: number): Promise<PostCommentType[]> {
+	static async findByPostId(postId: number) {
 		const result = await db
 			.select({
 				id: postComments.id,
@@ -45,10 +45,10 @@ export class PostComment {
 			.where(eq(postComments.postId, postId))
 			.orderBy(desc(postComments.createdAt));
 
-		return result as unknown as PostCommentType[];
+		return result[0];
 	}
 
-	static async update(id: number, content: string): Promise<void> {
+	static async update(id: number, content: string) {
 		await db
 			.update(postComments)
 			.set({
@@ -58,18 +58,15 @@ export class PostComment {
 			.where(eq(postComments.id, id));
 	}
 
-	static async delete(id: number): Promise<void> {
+	static async delete(id: number) {
 		await db.delete(postComments).where(eq(postComments.id, id));
 	}
 
-	static async deleteAllByPostId(postId: number): Promise<void> {
+	static async deleteAllByPostId(postId: number) {
 		await db.delete(postComments).where(eq(postComments.postId, postId));
 	}
 
-	static async findByUserAndPost(
-		userId: number,
-		postId: number
-	): Promise<PostCommentType[]> {
+	static async findByUserAndPost(userId: number, postId: number) {
 		const result = await db
 			.select()
 			.from(postComments)
@@ -78,6 +75,6 @@ export class PostComment {
 			)
 			.orderBy(desc(postComments.createdAt));
 
-		return result as unknown as PostCommentType[];
+		return result[0];
 	}
 }

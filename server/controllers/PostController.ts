@@ -6,298 +6,235 @@ import { PostInput, PostCommentInput, PostSearchInput } from '../types';
 import AsyncHandler from '../middleware/asyncHandler';
 import { BadRequestError } from '../utils/errors';
 export class PostController {
-	/**
-	 * Create a new post
-	 */
-	static createPost = AsyncHandler(
-		async (req: Request, res: Response): Promise<void> => {
-			if (!req.user) {
-				throw new BadRequestError('Authentication required');
-			}
-
-			const postData: PostInput = req.body;
-			const post = await PostService.createPost(req.user.id, postData);
-
-			res.status(201).json({
-				success: true,
-				data: post,
-				message: 'Post created successfully',
-			});
+	static createPost = AsyncHandler(async (req: Request, res: Response) => {
+		if (!req.user) {
+			throw new BadRequestError('Authentication required');
 		}
-	);
 
-	/**
-	 * Get a post by ID
-	 */
-	static getPost = AsyncHandler(
-		async (req: Request, res: Response): Promise<void> => {
-			const postId = Number(req.params.id);
-			if (isNaN(postId)) {
-				throw new Error('Invalid post ID');
-			}
+		const postData: PostInput = req.body;
+		const post = await PostService.createPost(req.user.id, postData);
 
-			const userId = req.user?.id;
-			const post = await PostService.getPostById(postId, userId);
+		res.status(201).json({
+			success: true,
+			data: post,
+			message: 'Post created successfully',
+		});
+	});
 
-			// Check if the user has liked this post
-			const hasLiked = userId
-				? await PostLikeService.hasUserLikedPost(userId, postId)
-				: false;
-
-			res.status(200).json({
-				success: true,
-				data: { ...post, hasLiked },
-				message: 'Post retrieved successfully',
-			});
+	static getPost = AsyncHandler(async (req: Request, res: Response) => {
+		const postId = Number(req.params.id);
+		if (isNaN(postId)) {
+			throw new Error('Invalid post ID');
 		}
-	);
 
-	/**
-	 * Get posts by current user
-	 */
-	static getUserPosts = AsyncHandler(
-		async (req: Request, res: Response): Promise<void> => {
-			if (!req.user) {
-				throw new BadRequestError('Authentication required');
-			}
+		const userId = req.user?.id;
+		const post = await PostService.getPostById(postId, userId);
 
-			const params: PostSearchInput = {
-				limit: req.query.limit ? Number(req.query.limit) : undefined,
-				offset: req.query.offset ? Number(req.query.offset) : undefined,
-				sortBy: req.query.sortBy as string | undefined,
-				sortOrder: req.query.sortOrder as 'asc' | 'desc' | undefined,
-				search: req.query.search as string | undefined,
-				isPublic:
-					req.query.isPublic === 'true'
-						? true
-						: req.query.isPublic === 'false'
-						? false
-						: undefined,
-			};
+		// Check if the user has liked this post
+		const hasLiked = userId
+			? await PostLikeService.hasUserLikedPost(userId, postId)
+			: false;
 
-			const posts = await PostService.getPostsWithLikeStatus(
-				req.user.id,
-				params
-			);
+		res.status(200).json({
+			success: true,
+			data: { ...post, hasLiked },
+			message: 'Post retrieved successfully',
+		});
+	});
 
-			res.status(200).json({
-				success: true,
-				data: posts,
-				message: 'User posts retrieved successfully',
-			});
+	static getUserPosts = AsyncHandler(async (req: Request, res: Response) => {
+		if (!req.user) {
+			throw new BadRequestError('Authentication required');
 		}
-	);
 
-	/**
-	 * Get post feed
-	 */
-	static getFeed = AsyncHandler(
-		async (req: Request, res: Response): Promise<void> => {
-			const userId = req.user?.id;
-			const params: PostSearchInput = {
-				limit: req.query.limit ? Number(req.query.limit) : undefined,
-				offset: req.query.offset ? Number(req.query.offset) : undefined,
-				sortBy: req.query.sortBy as string | undefined,
-				sortOrder: req.query.sortOrder as 'asc' | 'desc' | undefined,
-				search: req.query.search as string | undefined,
-			};
+		const params: PostSearchInput = {
+			limit: req.query.limit ? Number(req.query.limit) : undefined,
+			offset: req.query.offset ? Number(req.query.offset) : undefined,
+			sortBy: req.query.sortBy as string | undefined,
+			sortOrder: req.query.sortOrder as 'asc' | 'desc' | undefined,
+			search: req.query.search as string | undefined,
+			isPublic:
+				req.query.isPublic === 'true'
+					? true
+					: req.query.isPublic === 'false'
+					? false
+					: undefined,
+		};
 
-			const posts = await PostService.getFeed(userId, params);
+		const posts = await PostService.getPostsWithLikeStatus(req.user.id, params);
 
-			res.status(200).json({
-				success: true,
-				data: posts,
-				message: 'Post feed retrieved successfully',
-			});
+		res.status(200).json({
+			success: true,
+			data: posts,
+			message: 'User posts retrieved successfully',
+		});
+	});
+
+	static getFeed = AsyncHandler(async (req: Request, res: Response) => {
+		const userId = req.user?.id;
+		const params: PostSearchInput = {
+			limit: req.query.limit ? Number(req.query.limit) : undefined,
+			offset: req.query.offset ? Number(req.query.offset) : undefined,
+			sortBy: req.query.sortBy as string | undefined,
+			sortOrder: req.query.sortOrder as 'asc' | 'desc' | undefined,
+			search: req.query.search as string | undefined,
+		};
+
+		const posts = await PostService.getFeed(userId, params);
+
+		res.status(200).json({
+			success: true,
+			data: posts,
+			message: 'Post feed retrieved successfully',
+		});
+	});
+
+	static updatePost = AsyncHandler(async (req: Request, res: Response) => {
+		if (!req.user) {
+			throw new BadRequestError('Authentication required');
 		}
-	);
 
-	/**
-	 * Update a post
-	 */
-	static updatePost = AsyncHandler(
-		async (req: Request, res: Response): Promise<void> => {
-			if (!req.user) {
-				throw new BadRequestError('Authentication required');
-			}
-
-			const postId = Number(req.params.id);
-			if (isNaN(postId)) {
-				throw new Error('Invalid post ID');
-			}
-
-			const postData: Partial<PostInput> = req.body;
-			await PostService.updatePost(req.user.id, postId, postData);
-
-			res.status(200).json({
-				success: true,
-				message: 'Post updated successfully',
-			});
+		const postId = Number(req.params.id);
+		if (isNaN(postId)) {
+			throw new Error('Invalid post ID');
 		}
-	);
 
-	/**
-	 * Delete a post
-	 */
-	static deletePost = AsyncHandler(
-		async (req: Request, res: Response): Promise<void> => {
-			if (!req.user) {
-				throw new BadRequestError('Authentication required');
-			}
+		const postData: Partial<PostInput> = req.body;
+		await PostService.updatePost(req.user.id, postId, postData);
 
-			const postId = Number(req.params.id);
-			if (isNaN(postId)) {
-				throw new Error('Invalid post ID');
-			}
+		res.status(200).json({
+			success: true,
+			message: 'Post updated successfully',
+		});
+	});
 
-			await PostService.deletePost(req.user.id, postId);
-
-			res.status(200).json({
-				success: true,
-				message: 'Post deleted successfully',
-			});
+	static deletePost = AsyncHandler(async (req: Request, res: Response) => {
+		if (!req.user) {
+			throw new BadRequestError('Authentication required');
 		}
-	);
 
-	/**
-	 * Like a post
-	 */
-	static likePost = AsyncHandler(
-		async (req: Request, res: Response): Promise<void> => {
-			if (!req.user) {
-				throw new BadRequestError('Authentication required');
-			}
-
-			const postId = Number(req.params.id);
-			if (isNaN(postId)) {
-				throw new Error('Invalid post ID');
-			}
-
-			await PostLikeService.likePost(req.user.id, postId);
-
-			res.status(200).json({
-				success: true,
-				message: 'Post liked successfully',
-			});
+		const postId = Number(req.params.id);
+		if (isNaN(postId)) {
+			throw new Error('Invalid post ID');
 		}
-	);
 
-	/**
-	 * Unlike a post
-	 */
-	static unlikePost = AsyncHandler(
-		async (req: Request, res: Response): Promise<void> => {
-			if (!req.user) {
-				throw new BadRequestError('Authentication required');
-			}
+		await PostService.deletePost(req.user.id, postId);
 
-			const postId = Number(req.params.id);
-			if (isNaN(postId)) {
-				throw new Error('Invalid post ID');
-			}
+		res.status(200).json({
+			success: true,
+			message: 'Post deleted successfully',
+		});
+	});
 
-			await PostLikeService.unlikePost(req.user.id, postId);
-
-			res.status(200).json({
-				success: true,
-				message: 'Post unliked successfully',
-			});
+	static likePost = AsyncHandler(async (req: Request, res: Response) => {
+		if (!req.user) {
+			throw new BadRequestError('Authentication required');
 		}
-	);
 
-	/**
-	 * Add a comment to a post
-	 */
-	static addComment = AsyncHandler(
-		async (req: Request, res: Response): Promise<void> => {
-			if (!req.user) {
-				throw new BadRequestError('Authentication required');
-			}
-
-			const postId = Number(req.params.id);
-			if (isNaN(postId)) {
-				throw new Error('Invalid post ID');
-			}
-
-			const commentData: PostCommentInput = req.body;
-			const comment = await PostCommentService.createComment(
-				req.user.id,
-				postId,
-				commentData
-			);
-
-			res.status(201).json({
-				success: true,
-				data: comment,
-				message: 'Comment added successfully',
-			});
+		const postId = Number(req.params.id);
+		if (isNaN(postId)) {
+			throw new Error('Invalid post ID');
 		}
-	);
 
-	/**
-	 * Get comments for a post
-	 */
-	static getComments = AsyncHandler(
-		async (req: Request, res: Response): Promise<void> => {
-			const postId = Number(req.params.id);
-			if (isNaN(postId)) {
-				throw new Error('Invalid post ID');
-			}
+		await PostLikeService.likePost(req.user.id, postId);
 
-			const comments = await PostCommentService.getCommentsByPostId(postId);
+		res.status(200).json({
+			success: true,
+			message: 'Post liked successfully',
+		});
+	});
 
-			res.status(200).json({
-				success: true,
-				data: comments,
-				message: 'Comments retrieved successfully',
-			});
+	static unlikePost = AsyncHandler(async (req: Request, res: Response) => {
+		if (!req.user) {
+			throw new BadRequestError('Authentication required');
 		}
-	);
 
-	/**
-	 * Update a comment
-	 */
-	static updateComment = AsyncHandler(
-		async (req: Request, res: Response): Promise<void> => {
-			if (!req.user) {
-				throw new BadRequestError('Authentication required');
-			}
-
-			const commentId = Number(req.params.commentId);
-			if (isNaN(commentId)) {
-				throw new Error('Invalid comment ID');
-			}
-
-			const { content } = req.body;
-			await PostCommentService.updateComment(req.user.id, commentId, content);
-
-			res.status(200).json({
-				success: true,
-				message: 'Comment updated successfully',
-			});
+		const postId = Number(req.params.id);
+		if (isNaN(postId)) {
+			throw new Error('Invalid post ID');
 		}
-	);
 
-	/**
-	 * Delete a comment
-	 */
-	static deleteComment = AsyncHandler(
-		async (req: Request, res: Response): Promise<void> => {
-			if (!req.user) {
-				throw new BadRequestError('Authentication required');
-			}
+		await PostLikeService.unlikePost(req.user.id, postId);
 
-			const commentId = Number(req.params.commentId);
-			if (isNaN(commentId)) {
-				throw new Error('Invalid comment ID');
-			}
+		res.status(200).json({
+			success: true,
+			message: 'Post unliked successfully',
+		});
+	});
 
-			await PostCommentService.deleteComment(req.user.id, commentId);
-
-			res.status(200).json({
-				success: true,
-				message: 'Comment deleted successfully',
-			});
+	static addComment = AsyncHandler(async (req: Request, res: Response) => {
+		if (!req.user) {
+			throw new BadRequestError('Authentication required');
 		}
-	);
+
+		const postId = Number(req.params.id);
+		if (isNaN(postId)) {
+			throw new Error('Invalid post ID');
+		}
+
+		const commentData: PostCommentInput = req.body;
+		const comment = await PostCommentService.createComment(
+			req.user.id,
+			postId,
+			commentData
+		);
+
+		res.status(201).json({
+			success: true,
+			data: comment,
+			message: 'Comment added successfully',
+		});
+	});
+
+	static getComments = AsyncHandler(async (req: Request, res: Response) => {
+		const postId = Number(req.params.id);
+		if (isNaN(postId)) {
+			throw new Error('Invalid post ID');
+		}
+
+		const comments = await PostCommentService.getCommentsByPostId(postId);
+
+		res.status(200).json({
+			success: true,
+			data: comments,
+			message: 'Comments retrieved successfully',
+		});
+	});
+
+	static updateComment = AsyncHandler(async (req: Request, res: Response) => {
+		if (!req.user) {
+			throw new BadRequestError('Authentication required');
+		}
+
+		const commentId = Number(req.params.commentId);
+		if (isNaN(commentId)) {
+			throw new Error('Invalid comment ID');
+		}
+
+		const { content } = req.body;
+		await PostCommentService.updateComment(req.user.id, commentId, content);
+
+		res.status(200).json({
+			success: true,
+			message: 'Comment updated successfully',
+		});
+	});
+
+	static deleteComment = AsyncHandler(async (req: Request, res: Response) => {
+		if (!req.user) {
+			throw new BadRequestError('Authentication required');
+		}
+
+		const commentId = Number(req.params.commentId);
+		if (isNaN(commentId)) {
+			throw new Error('Invalid comment ID');
+		}
+
+		await PostCommentService.deleteComment(req.user.id, commentId);
+
+		res.status(200).json({
+			success: true,
+			message: 'Comment deleted successfully',
+		});
+	});
 }

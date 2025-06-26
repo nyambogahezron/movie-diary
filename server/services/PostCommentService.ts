@@ -1,6 +1,6 @@
 import { PostComment as PostCommentHelper } from '../helpers/PostComment';
 import { Post as PostHelper } from '../helpers/Post';
-import { PostComment as PostCommentType, PostCommentInput } from '../types';
+import { PostCommentInput } from '../types';
 import { NotFoundError, UnauthorizedError } from '../utils/errors';
 
 export class PostCommentService {
@@ -8,7 +8,7 @@ export class PostCommentService {
 		userId: number,
 		postId: number,
 		commentData: PostCommentInput
-	): Promise<PostCommentType> {
+	) {
 		const post = await PostHelper.findById(postId);
 		if (!post) {
 			throw new NotFoundError('Post not found');
@@ -25,7 +25,7 @@ export class PostCommentService {
 		return comment;
 	}
 
-	static async getCommentsByPostId(postId: number): Promise<PostCommentType[]> {
+	static async getCommentsByPostId(postId: number) {
 		const post = await PostHelper.findById(postId);
 		if (!post) {
 			throw new NotFoundError('Post not found');
@@ -38,7 +38,7 @@ export class PostCommentService {
 		userId: number,
 		commentId: number,
 		content: string
-	): Promise<void> {
+	) {
 		const comment = await PostCommentHelper.findById(commentId);
 
 		if (!comment) {
@@ -54,7 +54,7 @@ export class PostCommentService {
 		await PostCommentHelper.update(commentId, content);
 	}
 
-	static async deleteComment(userId: number, commentId: number): Promise<void> {
+	static async deleteComment(userId: number, commentId: number) {
 		const comment = await PostCommentHelper.findById(commentId);
 
 		if (!comment) {
@@ -72,10 +72,7 @@ export class PostCommentService {
 		await PostHelper.decrementComments(comment.postId);
 	}
 
-	static async getUserCommentsOnPost(
-		userId: number,
-		postId: number
-	): Promise<PostCommentType[]> {
+	static async getUserCommentsOnPost(userId: number, postId: number) {
 		return await PostCommentHelper.findByUserAndPost(userId, postId);
 	}
 }

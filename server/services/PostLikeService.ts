@@ -1,10 +1,9 @@
 import { PostLike as PostLikeHelper } from '../helpers/PostLike';
 import { Post as PostHelper } from '../helpers/Post';
-import { PostLike as PostLikeType } from '../types';
 import { NotFoundError, BadRequestError } from '../utils/errors';
 
 export class PostLikeService {
-	static async likePost(userId: number, postId: number): Promise<PostLikeType> {
+	static async likePost(userId: number, postId: number) {
 		const post = await PostHelper.findById(postId);
 		if (!post) {
 			throw new NotFoundError('Post not found');
@@ -22,7 +21,7 @@ export class PostLikeService {
 		return like;
 	}
 
-	static async unlikePost(userId: number, postId: number): Promise<void> {
+	static async unlikePost(userId: number, postId: number) {
 		const post = await PostHelper.findById(postId);
 		if (!post) {
 			throw new NotFoundError('Post not found');
@@ -38,15 +37,12 @@ export class PostLikeService {
 		await PostHelper.decrementLikes(postId);
 	}
 
-	static async hasUserLikedPost(
-		userId: number,
-		postId: number
-	): Promise<boolean> {
+	static async hasUserLikedPost(userId: number, postId: number) {
 		const like = await PostLikeHelper.findByUserAndPost(userId, postId);
 		return !!like;
 	}
 
-	static async getLikeCount(postId: number): Promise<number> {
+	static async getLikeCount(postId: number) {
 		return await PostLikeHelper.getLikeCount(postId);
 	}
 }

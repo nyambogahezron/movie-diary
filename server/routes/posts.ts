@@ -3,7 +3,6 @@ import { PostController } from '../controllers/PostController';
 import { authMiddleware } from '../middleware/auth';
 import { validate } from '../middleware/validate';
 import {
-	validatePostCreate,
 	validatePostUpdate,
 	validatePostIdParam,
 	validatePostComment,
@@ -14,7 +13,6 @@ import {
 
 const router = express.Router();
 
-// Public routes (no authentication required)
 router.get('/feed', validate(validatePostQuery), PostController.getFeed);
 router.get('/:id', validate(validatePostIdParam), PostController.getPost);
 router.get(
@@ -23,42 +21,30 @@ router.get(
 	PostController.getComments
 );
 
-// Protected routes (require authentication)
 router.use(authMiddleware);
 
-// Post CRUD operations
-router.get('/', validate(validatePostQuery), PostController.getUserPosts);
-router.post('/', validate(validatePostCreate), PostController.createPost);
-router.put('/:id', validate(validatePostUpdate), PostController.updatePost);
-router.delete('/:id', validate(validatePostIdParam), PostController.deletePost);
+router.route('/').get(validate(validatePostQuery), PostController.getUserPosts);
 
-// Post like operations
-router.post(
-	'/:id/like',
-	validate(validatePostIdParam),
-	PostController.likePost
-);
-router.delete(
-	'/:id/like',
-	validate(validatePostIdParam),
-	PostController.unlikePost
-);
+router
+	.route('/:id')
+	.get(validate(validatePostUpdate), PostController.updatePost)
+	.put(validate(validatePostUpdate), PostController.updatePost)
+	.delete(validate(validatePostIdParam), PostController.deletePost);
 
-// Post comment operations
+router
+	.route('/:id/like')
+	.post(validate(validatePostIdParam), PostController.likePost)
+	.delete(validate(validatePostIdParam), PostController.unlikePost);
+
 router.post(
 	'/:id/comments',
 	validate(validatePostComment),
 	PostController.addComment
 );
-router.put(
-	'/comments/:commentId',
-	validate(validateCommentUpdate),
-	PostController.updateComment
-);
-router.delete(
-	'/comments/:commentId',
-	validate(validateCommentIdParam),
-	PostController.deleteComment
-);
+
+router
+	.route('/comments/:commentId')
+	.put(validate(validateCommentUpdate), PostController.updateComment)
+	.delete(validate(validateCommentIdParam), PostController.deleteComment);
 
 export default router;
