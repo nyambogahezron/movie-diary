@@ -29,23 +29,7 @@ export class MovieReviewService {
 		});
 	}
 
-	static async updateReview(
-		id: number,
-		input: Partial<MovieReviewInput>,
-		user: User
-	) {
-		const review = await MovieReview.findById(id);
-
-		if (!review) {
-			throw new NotFoundError('Review not found');
-		}
-
-		if (review.userId !== user.id) {
-			throw new UnauthorizedError(
-				'You do not have permission to update this review'
-			);
-		}
-
+	static async updateReview(id: number, input: Partial<MovieReviewInput>) {
 		await MovieReview.update(id, input);
 
 		const updated = await MovieReview.findById(id);
@@ -90,8 +74,18 @@ export class MovieReviewService {
 		const reviews = await MovieReview.findByUserAndMovie(userId, movieId);
 
 		if (!reviews) {
-			throw new NotFoundError('No reviews found for this movie');
+			throw new NotFoundError('unauthorized or no reviews found');
 		}
 		return reviews;
+	}
+
+	static async findReviewById(id: number) {
+		const review = await MovieReview.findById(id);
+
+		if (!review) {
+			throw new NotFoundError('Review not found');
+		}
+
+		return review;
 	}
 }

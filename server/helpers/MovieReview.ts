@@ -1,5 +1,5 @@
 import { db } from '../db';
-import { movieReviews } from '../db/schema';
+import { movieReviews, movies } from '../db/schema';
 import { eq, and, desc, sql } from 'drizzle-orm';
 import { MovieReviewInput } from '../types';
 
@@ -9,7 +9,7 @@ export class MovieReview {
 	) {
 		const { userId, movieId, content, rating, isPublic = true } = data;
 
-		const [newReview] = await db
+		const newReview = await db
 			.insert(movieReviews)
 			.values({
 				userId,

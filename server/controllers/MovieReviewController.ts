@@ -1,9 +1,7 @@
 import { Request, Response } from 'express';
 import { MovieReviewService } from '../services/MovieReviewService';
-import { MovieReviewInput } from '../types';
 import AsyncHandler from '../middleware/asyncHandler';
 import { BadRequestError } from '../utils/errors';
-import e from 'cors';
 
 export class MovieReviewController {
 	static addReview = AsyncHandler(async (req: Request, res: Response) => {
@@ -62,32 +60,27 @@ export class MovieReviewController {
 			throw new BadRequestError('Invalid review ID');
 		}
 
-		const existingReview = await MovieReviewService.getMovieReviews(
-			req.user?.id!,
-			reviewId
-		);
+		const existingReview = await MovieReviewService.findReviewById(reviewId);
 
 		if (!existingReview) {
 			throw new BadRequestError('Review not found');
 		}
 
-		const content = req.body.content || existingReview.content;
-		const rating =
-			req.body.rating !== undefined
-				? Number(req.body.rating)
-				: existingReview.rating;
-		const isPublic =
-			req.body.isPublic !== undefined ? req.body.isPublic : existingReview;
+		if (existingReview.userId !== req.user?.id) {
+			throw new BadRequestError(
+				'You do not have permission to update this review'
+			);
+		}
 
-		const review = await MovieReviewService.updateReview(
-			reviewId,
-			{
-				content,
-				rating: rating !== null ? rating : null,
-				isPublic: isPublic !== undefined ? isPublic : existingReview.isPublic,
-			},
-			req.user!
-		);
+		const content = req.body.content ?? existingReview.content;
+		const rating = req.body.rating ?? existingReview.rating;
+		const isPublic = req.body.isPublic ?? existingReview.isPublic;
+
+		const review = await MovieReviewService.updateReview(reviewId, {
+			content,
+			rating,
+			isPublic,
+		});
 
 		res.status(200).json({
 			message: 'Review updated successfully',
