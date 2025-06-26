@@ -5,9 +5,7 @@ import { Movie as MovieType, MovieInput, SearchInput } from '../types';
 import { BadRequestError } from '../utils/errors';
 
 export class Movie {
-	static async create(
-		movieData: MovieInput & { userId: number }
-	): Promise<MovieType> {
+	static async create(movieData: MovieInput & { userId: number }) {
 		const genresJson = movieData.genres
 			? JSON.stringify(movieData.genres)
 			: null;

@@ -3,165 +3,117 @@ import { MovieReviewService } from '../services/MovieReviewService';
 import { MovieReviewInput } from '../types';
 import AsyncHandler from '../middleware/asyncHandler';
 import { BadRequestError } from '../utils/errors';
+import e from 'cors';
 
 export class MovieReviewController {
-	static addReview = AsyncHandler(
-		async (req: Request, res: Response): Promise<void> => {
-			if (!req.user) {
-				throw new BadRequestError('Authentication required');
-			}
+	static addReview = AsyncHandler(async (req: Request, res: Response) => {
+		const movieId = Number(req.params.movieId);
 
-			const movieId = Number(req.params.movieId);
-			if (isNaN(movieId)) {
-				throw new Error('Invalid movie ID');
-			}
-
-			const { content, rating, isPublic } = req.body;
-
-			if (!content) {
-				throw new Error('Review content is required');
-			}
-
-			if (
-				rating !== undefined &&
-				(isNaN(Number(rating)) || Number(rating) < 1 || Number(rating) > 10)
-			) {
-				throw new Error('Rating must be a number between 1 and 10');
-			}
-
-			const review = await MovieReviewService.addReview(
-				movieId,
-				{
-					content,
-					rating: rating ? Number(rating) : null,
-					isPublic,
-				},
-				req.user
-			);
-
-			res.status(201).json({
-				message: 'Review added successfully',
-				data: review,
-			});
+		if (isNaN(movieId)) {
+			throw new BadRequestError('Invalid movie ID');
 		}
-	);
 
-	static getMovieReviews = AsyncHandler(
-		async (req: Request, res: Response): Promise<void> => {
-			if (!req.user) {
-				throw new BadRequestError('Authentication required');
-			}
+		const { content, rating, isPublic } = req.body;
 
-			const movieId = Number(req.params.movieId);
-			if (isNaN(movieId)) {
-				throw new Error('Invalid movie ID');
-			}
-
-			const reviews = await MovieReviewService.getMovieReviews(
-				movieId,
-				req.user
-			);
-
-			res.status(200).json({
-				message: 'Reviews retrieved successfully',
-				data: reviews,
-			});
+		if (!content) {
+			throw new BadRequestError('Review content is required');
 		}
-	);
 
-	static getReview = AsyncHandler(
-		async (req: Request, res: Response): Promise<void> => {
-			if (!req.user) {
-				throw new BadRequestError('Authentication required');
-			}
-
-			const reviewId = Number(req.params.id);
-			if (isNaN(reviewId)) {
-				throw new Error('Invalid review ID');
-			}
-
-			const review = await MovieReviewService.getReview(reviewId, req.user);
-
-			res.status(200).json({
-				message: 'Review retrieved successfully',
-				data: review,
-			});
+		if (
+			rating !== undefined &&
+			(isNaN(Number(rating)) || Number(rating) < 1 || Number(rating) > 10)
+		) {
+			throw new BadRequestError('Rating must be a number between 1 and 10');
 		}
-	);
 
-	static updateReview = AsyncHandler(
-		async (req: Request, res: Response): Promise<void> => {
-			if (!req.user) {
-				throw new BadRequestError('Authentication required');
-			}
+		const review = await MovieReviewService.addReview(
+			movieId,
+			{
+				content,
+				rating: rating ? Number(rating) : null,
+				isPublic,
+			},
+			req.user!
+		);
 
-			const reviewId = Number(req.params.id);
-			if (isNaN(reviewId)) {
-				throw new Error('Invalid review ID');
-			}
+		res.status(201).json({
+			message: 'Review added successfully',
+			data: review,
+		});
+	});
 
-			const { content, rating, isPublic } = req.body;
-
-			if (!content && rating === undefined && isPublic === undefined) {
-				throw new Error('No update data provided');
-			}
-
-			if (
-				rating !== undefined &&
-				(isNaN(Number(rating)) || Number(rating) < 1 || Number(rating) > 10)
-			) {
-				throw new Error('Rating must be a number between 1 and 10');
-			}
-
-			const updateData: Partial<MovieReviewInput> = {};
-			if (content !== undefined) updateData.content = content;
-			if (rating !== undefined) updateData.rating = Number(rating);
-			if (isPublic !== undefined) updateData.isPublic = isPublic;
-
-			const review = await MovieReviewService.updateReview(
-				reviewId,
-				updateData,
-				req.user
-			);
-
-			res.status(200).json({
-				message: 'Review updated successfully',
-				data: review,
-			});
+	static getMovieReviews = AsyncHandler(async (req: Request, res: Response) => {
+		const movieId = Number(req.params.movieId);
+		if (isNaN(movieId)) {
+			throw new BadRequestError('Invalid movie ID');
 		}
-	);
 
-	static deleteReview = AsyncHandler(
-		async (req: Request, res: Response): Promise<void> => {
-			if (!req.user) {
-				throw new BadRequestError('Authentication required');
-			}
+		const reviews = await MovieReviewService.getReview(movieId);
 
-			const reviewId = Number(req.params.id);
-			if (isNaN(reviewId)) {
-				throw new Error('Invalid review ID');
-			}
+		res.status(200).json({
+			message: 'Reviews retrieved successfully',
+			data: reviews,
+		});
+	});
 
-			await MovieReviewService.deleteReview(reviewId, req.user);
-
-			res.status(200).json({
-				message: 'Review deleted successfully',
-			});
+	static updateReview = AsyncHandler(async (req: Request, res: Response) => {
+		const reviewId = Number(req.params.id);
+		if (isNaN(reviewId)) {
+			throw new BadRequestError('Invalid review ID');
 		}
-	);
 
-	static getUserReviews = AsyncHandler(
-		async (req: Request, res: Response): Promise<void> => {
-			if (!req.user) {
-				throw new BadRequestError('Authentication required');
-			}
+		const existingReview = await MovieReviewService.getMovieReviews(
+			req.user?.id!,
+			reviewId
+		);
 
-			const reviews = await MovieReviewService.getUserReviews(req.user);
-
-			res.status(200).json({
-				message: 'User reviews retrieved successfully',
-				data: reviews,
-			});
+		if (!existingReview) {
+			throw new BadRequestError('Review not found');
 		}
-	);
+
+		const content = req.body.content || existingReview.content;
+		const rating =
+			req.body.rating !== undefined
+				? Number(req.body.rating)
+				: existingReview.rating;
+		const isPublic =
+			req.body.isPublic !== undefined ? req.body.isPublic : existingReview;
+
+		const review = await MovieReviewService.updateReview(
+			reviewId,
+			{
+				content,
+				rating: rating !== null ? rating : null,
+				isPublic: isPublic !== undefined ? isPublic : existingReview.isPublic,
+			},
+			req.user!
+		);
+
+		res.status(200).json({
+			message: 'Review updated successfully',
+			data: review,
+		});
+	});
+
+	static deleteReview = AsyncHandler(async (req: Request, res: Response) => {
+		const reviewId = Number(req.params.id);
+		if (isNaN(reviewId)) {
+			throw new BadRequestError('Invalid review ID');
+		}
+
+		await MovieReviewService.deleteReview(reviewId, req.user!);
+
+		res.status(200).json({
+			message: 'Review deleted successfully',
+		});
+	});
+
+	static getUserReviews = AsyncHandler(async (req: Request, res: Response) => {
+		const reviews = await MovieReviewService.getUserReviews(req.user!);
+
+		res.status(200).json({
+			message: 'User reviews retrieved successfully',
+			data: reviews,
+		});
+	});
 }

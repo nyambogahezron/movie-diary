@@ -4,19 +4,16 @@ import { authMiddleware } from '../middleware/auth';
 
 const router = express.Router();
 
-router.use(authMiddleware);
-
-router.get('/', MovieReviewController.getUserReviews);
+router.get('/', authMiddleware, MovieReviewController.getUserReviews);
 
 router
 	.route('/:id')
-	.get(MovieReviewController.getReview)
-	.patch(MovieReviewController.updateReview)
-	.delete(MovieReviewController.deleteReview);
+	.patch(authMiddleware, MovieReviewController.updateReview)
+	.delete(authMiddleware, MovieReviewController.deleteReview);
 
 router
 	.route('/movie/:movieId')
 	.get(MovieReviewController.getMovieReviews)
-	.post(MovieReviewController.addReview);
+	.post(authMiddleware, MovieReviewController.addReview);
 
 export default router;

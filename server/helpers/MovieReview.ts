@@ -93,35 +93,4 @@ export class MovieReview {
 	static async delete(id: number) {
 		await db.delete(movieReviews).where(eq(movieReviews.id, id)).run();
 	}
-
-	static async getReviewsWithUserDetails(
-		movieId: number,
-		includePrivate = false
-	) {
-		const query = includePrivate
-			? sql`
-        SELECT 
-          mr.*, 
-          u.id as user_id, 
-          u.username, 
-          u.avatar
-        FROM movie_reviews mr
-        JOIN users u ON mr.user_id = u.id
-        WHERE mr.movie_id = ${movieId}
-        ORDER BY mr.created_at DESC
-      `
-			: sql`
-        SELECT 
-          mr.*, 
-          u.id as user_id, 
-          u.username, 
-          u.avatar
-        FROM movie_reviews mr
-        JOIN users u ON mr.user_id = u.id
-        WHERE mr.movie_id = ${movieId} AND mr.is_public = 1
-        ORDER BY mr.created_at DESC
-      `;
-
-		return await db.all(query);
-	}
 }
