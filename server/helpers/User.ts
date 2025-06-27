@@ -64,7 +64,7 @@ export class User {
 	}
 
 	static async findUser(identifier: string) {
-		const resultByUsername = this.findByUsername(identifier);
+		const resultByUsername = await this.findByUsername(identifier);
 		if (resultByUsername) {
 			return resultByUsername;
 		}

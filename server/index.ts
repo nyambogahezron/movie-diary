@@ -3,6 +3,7 @@ import cors from 'cors';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import cookieParser from 'cookie-parser';
+import path from 'path';
 
 import { config } from './config';
 
@@ -13,6 +14,7 @@ import favoriteRoutes from './routes/favorites';
 import movieReviewRoutes from './routes/movieReviews';
 import postRoutes from './routes/posts';
 import analyticsRoutes from './routes/analytics';
+import adminRoutes from './routes/admin';
 
 import { analyticsMiddleware } from './middleware/analytics';
 
@@ -76,6 +78,11 @@ app.use('/api/v1/favorites', favoriteRoutes);
 app.use('/api/v1/reviews', movieReviewRoutes);
 app.use('/api/v1/posts', postRoutes);
 app.use('/api/v1/analytics', analyticsRoutes);
+app.use('/api/v1/admin', adminRoutes);
+
+// Serve static files
+app.use(express.static(path.join(__dirname, 'public')));
+app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
 app.get('/', (_req, res) => {
 	res.status(200).json({ status: 'ok', message: 'Server is running' });

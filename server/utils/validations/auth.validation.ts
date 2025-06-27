@@ -54,10 +54,17 @@ export const authValidation = {
 			.withMessage('Username can only contain letters, numbers and underscores')
 			.trim(),
 
-		// Custom validation to ensure either email or username is provided
+		body('identifier')
+			.optional({ nullable: true })
+			.isLength({ min: 3, max: 50 })
+			.withMessage('Identifier must be between 3 and 50 characters')
+			.trim(),
+
 		body().custom((body) => {
-			if (!body.email && !body.username) {
-				throw new Error('Either email or username must be provided');
+			if (!body.email && !body.username && !body.identifier) {
+				throw new Error(
+					'Either email, username, or identifier must be provided'
+				);
 			}
 			return true;
 		}),

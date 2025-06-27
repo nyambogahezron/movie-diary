@@ -42,9 +42,9 @@ export class AuthController {
 	});
 
 	static login = AsyncHandler(async (req: Request, res: Response) => {
-		const { username, email, password } = req.body;
+		const { username, email, password, identifier } = req.body;
 
-		const loginIdentifier = username || email;
+		const loginIdentifier = identifier || username || email;
 
 		if (!loginIdentifier || !password) {
 			throw new BadRequestError('Invalid Credentials');

@@ -15,6 +15,7 @@ export const users = sqliteTable(
 		email: text('email'),
 		password: text('password').notNull(),
 		avatar: text('avatar'),
+		role: text('role').default('user').notNull(),
 		isEmailVerified: integer('is_email_verified', { mode: 'boolean' })
 			.default(false)
 			.notNull(),
