@@ -6,12 +6,10 @@ import {
 	Movie as MovieType,
 } from '../types';
 import { SearchInput } from '../types';
+import { BadRequestError } from '../utils/errors';
 
 export class WatchlistMovie {
-	static async create(data: {
-		watchlistId: number;
-		movieId: number;
-	}): Promise<WatchlistMovieType> {
+	static async create(data: { watchlistId: number; movieId: number }) {
 		const existingEntry = await db
 			.select()
 			.from(watchlistMovies)
@@ -23,7 +21,7 @@ export class WatchlistMovie {
 			);
 
 		if (existingEntry.length > 0) {
-			throw new Error('Movie is already in the watchlist');
+			throw new BadRequestError('Movie is already in the watchlist');
 		}
 
 		const result = await db
@@ -41,16 +39,16 @@ export class WatchlistMovie {
 			})
 			.where(eq(watchlists.id, data.watchlistId));
 
-		return result[0] as unknown as WatchlistMovieType;
+		return result[0];
 	}
 
-	static async findById(id: number): Promise<WatchlistMovieType | undefined> {
+	static async findById(id: number) {
 		const result = await db
 			.select()
 			.from(watchlistMovies)
 			.where(eq(watchlistMovies.id, id));
 
-		return result[0] as unknown as WatchlistMovieType;
+		return result[0];
 	}
 
 	static async findByWatchlistId(
@@ -80,7 +78,7 @@ export class WatchlistMovie {
 			.limit(params?.limit ?? 100)
 			.offset(params?.offset ?? 0);
 
-		return result as unknown as WatchlistMovieType[];
+		return result;
 	}
 
 	static async findByMovieId(movieId: number): Promise<WatchlistMovieType[]> {
@@ -89,13 +87,13 @@ export class WatchlistMovie {
 			.from(watchlistMovies)
 			.where(eq(watchlistMovies.movieId, movieId));
 
-		return result as unknown as WatchlistMovieType[];
+		return result;
 	}
 
 	static async findByWatchlistIdAndMovieId(
 		watchlistId: number,
 		movieId: number
-	): Promise<WatchlistMovieType | undefined> {
+	) {
 		const result = await db
 			.select()
 			.from(watchlistMovies)
@@ -106,13 +104,13 @@ export class WatchlistMovie {
 				)
 			);
 
-		return result[0] as unknown as WatchlistMovieType;
+		return result[0];
 	}
 
 	static async getMoviesByWatchlistId(
 		watchlistId: number,
 		params?: SearchInput
-	): Promise<MovieType[]> {
+	) {
 		const conditions = [eq(watchlistMovies.watchlistId, watchlistId)];
 
 		if (params?.search) {
@@ -150,10 +148,10 @@ export class WatchlistMovie {
 		return result.map((r) => r.movie) as unknown as MovieType[];
 	}
 
-	static async delete(id: number): Promise<void> {
+	static async delete(id: number) {
 		const entry = await this.findById(id);
 		if (!entry) {
-			throw new Error('WatchlistMovie not found');
+			throw new BadRequestError('WatchlistMovie not found');
 		}
 
 		await db.delete(watchlistMovies).where(eq(watchlistMovies.id, id));
@@ -169,7 +167,7 @@ export class WatchlistMovie {
 	static async deleteByWatchlistIdAndMovieId(
 		watchlistId: number,
 		movieId: number
-	): Promise<void> {
+	) {
 		await db
 			.delete(watchlistMovies)
 			.where(
@@ -187,7 +185,7 @@ export class WatchlistMovie {
 			.where(eq(watchlists.id, watchlistId));
 	}
 
-	static async deleteAllByWatchlistId(watchlistId: number): Promise<void> {
+	static async deleteAllByWatchlistId(watchlistId: number) {
 		await db
 			.delete(watchlistMovies)
 			.where(eq(watchlistMovies.watchlistId, watchlistId));
@@ -200,7 +198,7 @@ export class WatchlistMovie {
 			.where(eq(watchlists.id, watchlistId));
 	}
 
-	static async deleteAllByMovieId(movieId: number): Promise<void> {
+	static async deleteAllByMovieId(movieId: number) {
 		const entries = await this.findByMovieId(movieId);
 		const watchlistIds = [
 			...new Set(entries.map((entry) => entry.watchlistId)),

@@ -14,10 +14,7 @@ import {
 } from '../utils/errors';
 
 export class WatchlistService {
-	static async createWatchlist(
-		input: WatchlistInput,
-		user: User
-	): Promise<WatchlistType> {
+	static async createWatchlist(input: WatchlistInput, user: User) {
 		try {
 			return await Watchlist.create({
 				name: input.name,
@@ -47,14 +44,12 @@ export class WatchlistService {
 			throw new NotFoundError('Watchlist not found');
 		}
 
-		// Check if the user can access this watchlist
 		if (watchlist.userId !== user.id && !watchlist.isPublic) {
 			throw new UnauthorizedError(
 				'You do not have permission to view this watchlist'
 			);
 		}
 
-		// Get movies in this watchlist
 		const movies = await Watchlist.getMovies(id);
 
 		return {
@@ -67,7 +62,7 @@ export class WatchlistService {
 		id: number,
 		input: Partial<WatchlistType>,
 		user: User
-	): Promise<WatchlistType> {
+	) {
 		const watchlist = await Watchlist.findById(id);
 
 		if (!watchlist) {
@@ -80,10 +75,8 @@ export class WatchlistService {
 			);
 		}
 
-		// Update the watchlist
 		await Watchlist.update(id, input);
 
-		// Return the updated watchlist
 		const updated = await Watchlist.findById(id);
 		if (!updated) {
 			throw new NotFoundError('Updated watchlist not found');
@@ -92,7 +85,7 @@ export class WatchlistService {
 		return updated;
 	}
 
-	static async deleteWatchlist(id: number, user: User): Promise<void> {
+	static async deleteWatchlist(id: number, user: User) {
 		const watchlist = await Watchlist.findById(id);
 
 		if (!watchlist) {
@@ -105,7 +98,6 @@ export class WatchlistService {
 			);
 		}
 
-		// Delete the watchlist
 		await Watchlist.delete(id);
 	}
 
@@ -119,8 +111,7 @@ export class WatchlistService {
 		watchlistId: number,
 		movieId: number,
 		user: User
-	): Promise<void> {
-		// Check if the watchlist exists and belongs to the user
+	) {
 		const watchlist = await Watchlist.findById(watchlistId);
 
 		if (!watchlist) {
@@ -133,14 +124,12 @@ export class WatchlistService {
 			);
 		}
 
-		// Check if the movie exists
 		const movie = await Movie.findById(movieId);
 
 		if (!movie) {
 			throw new NotFoundError('Movie not found');
 		}
 
-		// Add the movie to the watchlist
 		await Watchlist.addMovie(watchlistId, movieId);
 	}
 
@@ -148,8 +137,7 @@ export class WatchlistService {
 		watchlistId: number,
 		movieId: number,
 		user: User
-	): Promise<void> {
-		// Check if the watchlist exists and belongs to the user
+	) {
 		const watchlist = await Watchlist.findById(watchlistId);
 
 		if (!watchlist) {
@@ -162,7 +150,6 @@ export class WatchlistService {
 			);
 		}
 
-		// Remove the movie from the watchlist
 		await Watchlist.removeMovie(watchlistId, movieId);
 	}
 
@@ -170,14 +157,13 @@ export class WatchlistService {
 		watchlistId: number,
 		user: User,
 		params?: SearchInput
-	): Promise<MovieType[]> {
+	) {
 		const watchlist = await Watchlist.findById(watchlistId);
 
 		if (!watchlist) {
 			throw new NotFoundError('Watchlist not found');
 		}
 
-		// Check if the user can access this watchlist
 		if (watchlist.userId !== user.id && !watchlist.isPublic) {
 			throw new UnauthorizedError(
 				'You do not have permission to view this watchlist'

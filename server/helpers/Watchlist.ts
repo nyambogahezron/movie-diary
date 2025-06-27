@@ -1,7 +1,7 @@
 import { db } from '../db';
 import { watchlists, watchlistMovies, movies } from '../db/schema';
 import { eq, and, desc, asc, like } from 'drizzle-orm';
-import { Watchlist as WatchlistType, Movie as MovieType } from '../types';
+import { Watchlist as WatchlistType } from '../types';
 import { SearchInput } from '../types';
 
 export class Watchlist {
@@ -10,7 +10,7 @@ export class Watchlist {
 		description?: string;
 		isPublic: boolean;
 		userId: number;
-	}): Promise<WatchlistType> {
+	}) {
 		const existingWatchlist = await db
 			.select()
 			.from(watchlists)
@@ -35,27 +35,27 @@ export class Watchlist {
 			})
 			.returning();
 
-		return result[0] as unknown as WatchlistType;
+		return result[0];
 	}
 
-	static async findById(id: number): Promise<WatchlistType | undefined> {
+	static async findById(id: number) {
 		const result = await db
 			.select()
 			.from(watchlists)
 			.where(eq(watchlists.id, id));
-		return result[0] as unknown as WatchlistType;
+		return result[0];
 	}
 
-	static async findByUserId(userId: number): Promise<WatchlistType[]> {
+	static async findByUserId(userId: number) {
 		const result = await db
 			.select()
 			.from(watchlists)
 			.where(eq(watchlists.userId, userId));
 
-		return result as unknown as WatchlistType[];
+		return result;
 	}
 
-	static async findPublic(params?: SearchInput): Promise<WatchlistType[]> {
+	static async findPublic(params?: SearchInput) {
 		const conditions = [eq(watchlists.isPublic, true)];
 
 		if (params?.search) {
@@ -87,13 +87,10 @@ export class Watchlist {
 			.limit(params?.limit ?? 100)
 			.offset(params?.offset ?? 0);
 
-		return result as unknown as WatchlistType[];
+		return result;
 	}
 
-	static async update(
-		id: number,
-		watchlistData: Partial<WatchlistType>
-	): Promise<void> {
+	static async update(id: number, watchlistData: Partial<WatchlistType>) {
 		await db
 			.update(watchlists)
 			.set({
@@ -103,12 +100,12 @@ export class Watchlist {
 			.where(eq(watchlists.id, id));
 	}
 
-	static async delete(id: number): Promise<void> {
+	static async delete(id: number) {
 		await db.delete(watchlistMovies).where(eq(watchlistMovies.watchlistId, id));
 		await db.delete(watchlists).where(eq(watchlists.id, id));
 	}
 
-	static async addMovie(watchlistId: number, movieId: number): Promise<void> {
+	static async addMovie(watchlistId: number, movieId: number) {
 		const existingEntry = await db
 			.select()
 			.from(watchlistMovies)
@@ -136,10 +133,7 @@ export class Watchlist {
 			.where(eq(watchlists.id, watchlistId));
 	}
 
-	static async removeMovie(
-		watchlistId: number,
-		movieId: number
-	): Promise<void> {
+	static async removeMovie(watchlistId: number, movieId: number) {
 		await db
 			.delete(watchlistMovies)
 			.where(
@@ -157,10 +151,7 @@ export class Watchlist {
 			.where(eq(watchlists.id, watchlistId));
 	}
 
-	static async getMovies(
-		watchlistId: number,
-		params?: SearchInput
-	): Promise<MovieType[]> {
+	static async getMovies(watchlistId: number, params?: SearchInput) {
 		const conditions = [eq(watchlistMovies.watchlistId, watchlistId)];
 
 		if (params?.search) {
@@ -195,6 +186,6 @@ export class Watchlist {
 			.limit(params?.limit ?? 100)
 			.offset(params?.offset ?? 0);
 
-		return result.map((r) => r.movie) as unknown as MovieType[];
+		return result.map((r) => r.movie);
 	}
 }

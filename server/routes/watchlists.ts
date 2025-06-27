@@ -4,23 +4,25 @@ import { authMiddleware } from '../middleware/auth';
 
 const router = express.Router();
 
-// All routes require authentication
 router.use(authMiddleware);
 
-// Watchlist CRUD routes
-router.post('/', WatchlistController.createWatchlist);
-router.get('/', WatchlistController.getUserWatchlists);
-router.get('/public', WatchlistController.getPublicWatchlists);
-router.get('/:id', WatchlistController.getWatchlist);
-router.put('/:id', WatchlistController.updateWatchlist);
-router.delete('/:id', WatchlistController.deleteWatchlist);
+router
+	.route('/')
+	.post(WatchlistController.createWatchlist)
+	.get(WatchlistController.getUserWatchlists);
 
-// Watchlist-Movie association routes
-router.post('/:id/movies', WatchlistController.addMovieToWatchlist);
-router.delete(
-	'/:id/movies/:movieId',
-	WatchlistController.removeMovieFromWatchlist
-);
-router.get('/:id/movies', WatchlistController.getWatchlistMovies);
+router.get('/public', WatchlistController.getPublicWatchlists);
+
+router
+	.route('/:id')
+	.get(WatchlistController.getWatchlist)
+	.put(WatchlistController.updateWatchlist)
+	.delete(WatchlistController.deleteWatchlist);
+
+router
+	.route('/:id/movies')
+	.get(WatchlistController.getWatchlistMovies)
+	.post(WatchlistController.addMovieToWatchlist)
+	.delete(WatchlistController.removeMovieFromWatchlist);
 
 export default router;

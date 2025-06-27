@@ -18,7 +18,7 @@ export class WatchlistMovieService {
 		watchlistId: number,
 		movieId: number,
 		user: User
-	): Promise<WatchlistMovieType> {
+	) {
 		const watchlist = await Watchlist.findById(watchlistId);
 
 		if (!watchlist) {
@@ -57,7 +57,7 @@ export class WatchlistMovieService {
 		watchlistId: number,
 		movieId: number,
 		user: User
-	): Promise<void> {
+	) {
 		const watchlist = await Watchlist.findById(watchlistId);
 
 		if (!watchlist) {
@@ -122,10 +122,7 @@ export class WatchlistMovieService {
 		return WatchlistMovie.findByWatchlistId(watchlistId, params);
 	}
 
-	static async getWatchlistMovie(
-		id: number,
-		user: User
-	): Promise<WatchlistMovieType> {
+	static async getWatchlistMovie(id: number, user: User) {
 		const watchlistMovie = await WatchlistMovie.findById(id);
 
 		if (!watchlistMovie) {
@@ -147,7 +144,7 @@ export class WatchlistMovieService {
 		return watchlistMovie;
 	}
 
-	static async deleteWatchlistMovie(id: number, user: User): Promise<void> {
+	static async deleteWatchlistMovie(id: number, user: User) {
 		const watchlistMovie = await WatchlistMovie.findById(id);
 
 		if (!watchlistMovie) {

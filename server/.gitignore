@@ -1,6 +1,5 @@
 node_modules/
 .env
-dist/
 db/migrations/
 db/migrations/meta/
 db/database.sqlite3

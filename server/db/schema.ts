@@ -203,7 +203,7 @@ export const userAnalytics = sqliteTable('user_analytics', {
 
 export const endpointAnalytics = sqliteTable('endpoint_analytics', {
 	id: integer('id').primaryKey({ autoIncrement: true }),
-	endpoint: text('endpoint').notNull(), // Normalized endpoint path
+	endpoint: text('endpoint').notNull(),
 	method: text('method').notNull(),
 	totalRequests: integer('total_requests').notNull().default(0),
 	avgResponseTime: integer('avg_response_time').notNull().default(0),
