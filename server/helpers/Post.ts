@@ -1,6 +1,6 @@
 import { db } from '../db';
 import { posts, postLikes } from '../db/schema';
-import { eq, like, desc, asc, and, sql } from 'drizzle-orm';
+import { eq, like, desc, asc, and, sql, inArray } from 'drizzle-orm';
 import { Post as PostType, PostInput, PostSearchInput } from '../types';
 
 export class Post {
@@ -19,12 +19,12 @@ export class Post {
 			})
 			.returning();
 
-		return result[0] as unknown as PostType;
+		return result[0];
 	}
 
 	static async findById(id: number) {
 		const result = await db.select().from(posts).where(eq(posts.id, id));
-		return result[0] as unknown as PostType;
+		return result[0];
 	}
 
 	static async findByUserId(userId: number, params?: PostSearchInput) {
@@ -82,7 +82,7 @@ export class Post {
 			.limit(params?.limit ?? 100)
 			.offset(params?.offset ?? 0);
 
-		return result as unknown as PostType[];
+		return result;
 	}
 
 	static async update(id: number, postData: Partial<PostInput>) {
@@ -153,10 +153,7 @@ export class Post {
 			.select()
 			.from(postLikes)
 			.where(
-				and(
-					eq(postLikes.userId, userId),
-					sql`${postLikes.postId} IN (${sql.join(postIds)})`
-				)
+				and(eq(postLikes.userId, userId), inArray(postLikes.postId, postIds))
 			);
 
 		const likeMap = new Map<number, boolean>();

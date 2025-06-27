@@ -9,12 +9,13 @@ import {
 	validateCommentUpdate,
 	validateCommentIdParam,
 	validatePostQuery,
+	validatePostCreate,
 } from '../utils/validations/post.validation';
 
 const router = express.Router();
 
 router.get('/feed', validate(validatePostQuery), PostController.getFeed);
-router.get('/:id', validate(validatePostIdParam), PostController.getPost);
+router.get('/:id', validate(validatePostIdParam), PostController.getSinglePost);
 router.get(
 	'/:id/comments',
 	validate(validatePostIdParam),
@@ -23,12 +24,14 @@ router.get(
 
 router.use(authMiddleware);
 
-router.route('/').get(validate(validatePostQuery), PostController.getUserPosts);
+router
+	.route('/')
+	.get(validate(validatePostQuery), PostController.getUserPosts)
+	.post(validate(validatePostCreate), PostController.createPost);
 
 router
 	.route('/:id')
-	.get(validate(validatePostUpdate), PostController.updatePost)
-	.put(validate(validatePostUpdate), PostController.updatePost)
+	.patch(validate(validatePostUpdate), PostController.updatePost)
 	.delete(validate(validatePostIdParam), PostController.deletePost);
 
 router

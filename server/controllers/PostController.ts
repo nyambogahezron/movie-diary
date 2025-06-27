@@ -7,12 +7,8 @@ import AsyncHandler from '../middleware/asyncHandler';
 import { BadRequestError } from '../utils/errors';
 export class PostController {
 	static createPost = AsyncHandler(async (req: Request, res: Response) => {
-		if (!req.user) {
-			throw new BadRequestError('Authentication required');
-		}
-
 		const postData: PostInput = req.body;
-		const post = await PostService.createPost(req.user.id, postData);
+		const post = await PostService.createPost(req.user!.id, postData);
 
 		res.status(201).json({
 			success: true,
@@ -21,16 +17,15 @@ export class PostController {
 		});
 	});
 
-	static getPost = AsyncHandler(async (req: Request, res: Response) => {
+	static getSinglePost = AsyncHandler(async (req: Request, res: Response) => {
 		const postId = Number(req.params.id);
 		if (isNaN(postId)) {
-			throw new Error('Invalid post ID');
+			throw new BadRequestError('Invalid post ID');
 		}
 
 		const userId = req.user?.id;
 		const post = await PostService.getPostById(postId, userId);
 
-		// Check if the user has liked this post
 		const hasLiked = userId
 			? await PostLikeService.hasUserLikedPost(userId, postId)
 			: false;
@@ -43,10 +38,6 @@ export class PostController {
 	});
 
 	static getUserPosts = AsyncHandler(async (req: Request, res: Response) => {
-		if (!req.user) {
-			throw new BadRequestError('Authentication required');
-		}
-
 		const params: PostSearchInput = {
 			limit: req.query.limit ? Number(req.query.limit) : undefined,
 			offset: req.query.offset ? Number(req.query.offset) : undefined,
@@ -61,7 +52,10 @@ export class PostController {
 					: undefined,
 		};
 
-		const posts = await PostService.getPostsWithLikeStatus(req.user.id, params);
+		const posts = await PostService.getPostsWithLikeStatus(
+			req.user!.id,
+			params
+		);
 
 		res.status(200).json({
 			success: true,
@@ -90,17 +84,13 @@ export class PostController {
 	});
 
 	static updatePost = AsyncHandler(async (req: Request, res: Response) => {
-		if (!req.user) {
-			throw new BadRequestError('Authentication required');
-		}
-
 		const postId = Number(req.params.id);
 		if (isNaN(postId)) {
 			throw new Error('Invalid post ID');
 		}
 
 		const postData: Partial<PostInput> = req.body;
-		await PostService.updatePost(req.user.id, postId, postData);
+		await PostService.updatePost(req.user!.id, postId, postData);
 
 		res.status(200).json({
 			success: true,
@@ -109,16 +99,12 @@ export class PostController {
 	});
 
 	static deletePost = AsyncHandler(async (req: Request, res: Response) => {
-		if (!req.user) {
-			throw new BadRequestError('Authentication required');
-		}
-
 		const postId = Number(req.params.id);
 		if (isNaN(postId)) {
-			throw new Error('Invalid post ID');
+			throw new BadRequestError('Invalid post ID');
 		}
 
-		await PostService.deletePost(req.user.id, postId);
+		await PostService.deletePost(req.user!.id, postId);
 
 		res.status(200).json({
 			success: true,
@@ -127,16 +113,12 @@ export class PostController {
 	});
 
 	static likePost = AsyncHandler(async (req: Request, res: Response) => {
-		if (!req.user) {
-			throw new BadRequestError('Authentication required');
-		}
-
 		const postId = Number(req.params.id);
 		if (isNaN(postId)) {
-			throw new Error('Invalid post ID');
+			throw new BadRequestError('Invalid post ID');
 		}
 
-		await PostLikeService.likePost(req.user.id, postId);
+		await PostLikeService.likePost(req.user!.id, postId);
 
 		res.status(200).json({
 			success: true,
@@ -145,16 +127,12 @@ export class PostController {
 	});
 
 	static unlikePost = AsyncHandler(async (req: Request, res: Response) => {
-		if (!req.user) {
-			throw new BadRequestError('Authentication required');
-		}
-
 		const postId = Number(req.params.id);
 		if (isNaN(postId)) {
-			throw new Error('Invalid post ID');
+			throw new BadRequestError('Invalid post ID');
 		}
 
-		await PostLikeService.unlikePost(req.user.id, postId);
+		await PostLikeService.unlikePost(req.user!.id, postId);
 
 		res.status(200).json({
 			success: true,
@@ -163,18 +141,16 @@ export class PostController {
 	});
 
 	static addComment = AsyncHandler(async (req: Request, res: Response) => {
-		if (!req.user) {
-			throw new BadRequestError('Authentication required');
-		}
-
 		const postId = Number(req.params.id);
+
 		if (isNaN(postId)) {
-			throw new Error('Invalid post ID');
+			throw new BadRequestError('Invalid post ID');
 		}
 
 		const commentData: PostCommentInput = req.body;
+
 		const comment = await PostCommentService.createComment(
-			req.user.id,
+			req.user!.id,
 			postId,
 			commentData
 		);
@@ -189,7 +165,7 @@ export class PostController {
 	static getComments = AsyncHandler(async (req: Request, res: Response) => {
 		const postId = Number(req.params.id);
 		if (isNaN(postId)) {
-			throw new Error('Invalid post ID');
+			throw new BadRequestError('Invalid post ID');
 		}
 
 		const comments = await PostCommentService.getCommentsByPostId(postId);
@@ -202,17 +178,13 @@ export class PostController {
 	});
 
 	static updateComment = AsyncHandler(async (req: Request, res: Response) => {
-		if (!req.user) {
-			throw new BadRequestError('Authentication required');
-		}
-
 		const commentId = Number(req.params.commentId);
 		if (isNaN(commentId)) {
-			throw new Error('Invalid comment ID');
+			throw new BadRequestError('Invalid comment ID');
 		}
 
 		const { content } = req.body;
-		await PostCommentService.updateComment(req.user.id, commentId, content);
+		await PostCommentService.updateComment(req.user!.id, commentId, content);
 
 		res.status(200).json({
 			success: true,
@@ -221,16 +193,12 @@ export class PostController {
 	});
 
 	static deleteComment = AsyncHandler(async (req: Request, res: Response) => {
-		if (!req.user) {
-			throw new BadRequestError('Authentication required');
-		}
-
 		const commentId = Number(req.params.commentId);
 		if (isNaN(commentId)) {
-			throw new Error('Invalid comment ID');
+			throw new BadRequestError('Invalid comment ID');
 		}
 
-		await PostCommentService.deleteComment(req.user.id, commentId);
+		await PostCommentService.deleteComment(req.user!.id, commentId);
 
 		res.status(200).json({
 			success: true,
