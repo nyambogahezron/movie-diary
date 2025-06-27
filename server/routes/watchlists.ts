@@ -15,12 +15,12 @@ router.get('/public', WatchlistController.getPublicWatchlists);
 
 router
 	.route('/:id')
-	.get(WatchlistController.getWatchlist)
+	.get(WatchlistController.getSingleWatchlist)
 	.put(WatchlistController.updateWatchlist)
 	.delete(WatchlistController.deleteWatchlist);
 
 router
-	.route('/:id/movies')
+	.route('/:id/movies/:movieId')
 	.get(WatchlistController.getWatchlistMovies)
 	.post(WatchlistController.addMovieToWatchlist)
 	.delete(WatchlistController.removeMovieFromWatchlist);

@@ -30,14 +30,11 @@ export class WatchlistService {
 		}
 	}
 
-	static async getWatchlists(user: User): Promise<WatchlistType[]> {
+	static async getWatchlists(user: User) {
 		return Watchlist.findByUserId(user.id);
 	}
 
-	static async getWatchlist(
-		id: number,
-		user: User
-	): Promise<WatchlistType & { movies?: MovieType[] }> {
+	static async getWatchlist(id: number, user: User) {
 		const watchlist = await Watchlist.findById(id);
 
 		if (!watchlist) {
@@ -101,9 +98,7 @@ export class WatchlistService {
 		await Watchlist.delete(id);
 	}
 
-	static async getPublicWatchlists(
-		params?: SearchInput
-	): Promise<WatchlistType[]> {
+	static async getPublicWatchlists(params?: SearchInput) {
 		return Watchlist.findPublic(params);
 	}
 

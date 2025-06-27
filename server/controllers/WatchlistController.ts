@@ -5,41 +5,31 @@ import AsyncHandler from '../middleware/asyncHandler';
 import { BadRequestError } from '../utils/errors';
 
 export class WatchlistController {
-	static createWatchlist = AsyncHandler(
-		async (req: Request, res: Response): Promise<void> => {
-			if (!req.user) {
-				throw new BadRequestError('Authentication required');
-			}
+	static createWatchlist = AsyncHandler(async (req: Request, res: Response) => {
+		const { name, description, isPublic } = req.body;
 
-			const { name, description, isPublic } = req.body;
-
-			if (!name) {
-				throw new Error('Watchlist name is required');
-			}
-
-			const watchlist = await WatchlistService.createWatchlist(
-				{
-					name,
-					description,
-					isPublic,
-				},
-				req.user
-			);
-
-			res.status(201).json({
-				message: 'Watchlist created successfully',
-				data: watchlist,
-			});
+		if (!name) {
+			throw new BadRequestError('Watchlist name is required');
 		}
-	);
+
+		const watchlist = await WatchlistService.createWatchlist(
+			{
+				name,
+				description,
+				isPublic,
+			},
+			req.user!
+		);
+
+		res.status(201).json({
+			message: 'Watchlist created successfully',
+			data: watchlist,
+		});
+	});
 
 	static getUserWatchlists = AsyncHandler(
-		async (req: Request, res: Response): Promise<void> => {
-			if (!req.user) {
-				throw new BadRequestError('Authentication required');
-			}
-
-			const watchlists = await WatchlistService.getWatchlists(req.user);
+		async (req: Request, res: Response) => {
+			const watchlists = await WatchlistService.getWatchlists(req.user!);
 
 			res.status(200).json({
 				message: 'Watchlists retrieved successfully',
@@ -49,7 +39,7 @@ export class WatchlistController {
 	);
 
 	static getPublicWatchlists = AsyncHandler(
-		async (req: Request, res: Response): Promise<void> => {
+		async (req: Request, res: Response) => {
 			const searchParams: SearchInput = {};
 
 			if (req.query.search) {
@@ -83,21 +73,17 @@ export class WatchlistController {
 		}
 	);
 
-	static getWatchlist = AsyncHandler(
-		async (req: Request, res: Response): Promise<void> => {
-			if (!req.user) {
-				throw new BadRequestError('Authentication required');
-			}
-
+	static getSingleWatchlist = AsyncHandler(
+		async (req: Request, res: Response) => {
 			const watchlistId = Number(req.params.id);
 
 			if (isNaN(watchlistId)) {
-				throw new Error('Invalid watchlist ID');
+				throw new BadRequestError('Invalid watchlist ID');
 			}
 
 			const watchlist = await WatchlistService.getWatchlist(
 				watchlistId,
-				req.user
+				req.user!
 			);
 
 			res.status(200).json({
@@ -107,68 +93,60 @@ export class WatchlistController {
 		}
 	);
 
-	static updateWatchlist = AsyncHandler(
-		async (req: Request, res: Response): Promise<void> => {
-			if (!req.user) {
-				throw new BadRequestError('Authentication required');
-			}
-
-			const watchlistId = Number(req.params.id);
-
-			if (isNaN(watchlistId)) {
-				throw new Error('Invalid watchlist ID');
-			}
-
-			const watchlist = await WatchlistService.updateWatchlist(
-				watchlistId,
-				req.body,
-				req.user
-			);
-
-			res.status(200).json({
-				message: 'Watchlist updated successfully',
-				data: watchlist,
-			});
+	static updateWatchlist = AsyncHandler(async (req: Request, res: Response) => {
+		if (!req.user) {
+			throw new BadRequestError('Authentication required');
 		}
-	);
 
-	static deleteWatchlist = AsyncHandler(
-		async (req: Request, res: Response): Promise<void> => {
-			if (!req.user) {
-				throw new BadRequestError('Authentication required');
-			}
+		const watchlistId = Number(req.params.id);
 
-			const watchlistId = Number(req.params.id);
-
-			if (isNaN(watchlistId)) {
-				throw new Error('Invalid watchlist ID');
-			}
-
-			await WatchlistService.deleteWatchlist(watchlistId, req.user);
-
-			res.status(200).json({
-				message: 'Watchlist deleted successfully',
-			});
+		if (isNaN(watchlistId)) {
+			throw new BadRequestError('Invalid watchlist ID');
 		}
-	);
+
+		const watchlist = await WatchlistService.updateWatchlist(
+			watchlistId,
+			req.body,
+			req.user
+		);
+
+		res.status(200).json({
+			message: 'Watchlist updated successfully',
+			data: watchlist,
+		});
+	});
+
+	static deleteWatchlist = AsyncHandler(async (req: Request, res: Response) => {
+		if (!req.user) {
+			throw new BadRequestError('Authentication required');
+		}
+
+		const watchlistId = Number(req.params.id);
+
+		if (isNaN(watchlistId)) {
+			throw new BadRequestError('Invalid watchlist ID');
+		}
+
+		await WatchlistService.deleteWatchlist(watchlistId, req.user);
+
+		res.status(200).json({
+			message: 'Watchlist deleted successfully',
+		});
+	});
 
 	static addMovieToWatchlist = AsyncHandler(
-		async (req: Request, res: Response): Promise<void> => {
-			if (!req.user) {
-				throw new BadRequestError('Authentication required');
-			}
-
+		async (req: Request, res: Response) => {
 			const watchlistId = Number(req.params.id);
 			const movieId = Number(req.params.movieId);
 
 			if (isNaN(watchlistId) || isNaN(movieId)) {
-				throw new Error('Invalid watchlist ID or movie ID');
+				throw new BadRequestError('Invalid watchlist ID or movie ID');
 			}
 
 			await WatchlistService.addMovieToWatchlist(
 				watchlistId,
 				movieId,
-				req.user
+				req.user!
 			);
 
 			res.status(200).json({
@@ -178,22 +156,18 @@ export class WatchlistController {
 	);
 
 	static removeMovieFromWatchlist = AsyncHandler(
-		async (req: Request, res: Response): Promise<void> => {
-			if (!req.user) {
-				throw new BadRequestError('Authentication required');
-			}
-
+		async (req: Request, res: Response) => {
 			const watchlistId = Number(req.params.id);
 			const movieId = Number(req.params.movieId);
 
 			if (isNaN(watchlistId) || isNaN(movieId)) {
-				throw new Error('Invalid watchlist ID or movie ID');
+				throw new BadRequestError('Invalid watchlist ID or movie ID');
 			}
 
 			await WatchlistService.removeMovieFromWatchlist(
 				watchlistId,
 				movieId,
-				req.user
+				req.user!
 			);
 
 			res.status(200).json({
@@ -203,15 +177,11 @@ export class WatchlistController {
 	);
 
 	static getWatchlistMovies = AsyncHandler(
-		async (req: Request, res: Response): Promise<void> => {
-			if (!req.user) {
-				throw new BadRequestError('Authentication required');
-			}
-
+		async (req: Request, res: Response) => {
 			const watchlistId = Number(req.params.id);
 
 			if (isNaN(watchlistId)) {
-				throw new Error('Invalid watchlist ID');
+				throw new BadRequestError('Invalid watchlist ID');
 			}
 
 			const searchParams: SearchInput = {};
@@ -238,7 +208,7 @@ export class WatchlistController {
 
 			const movies = await WatchlistService.getWatchlistMovies(
 				watchlistId,
-				req.user,
+				req.user!,
 				searchParams
 			);
 
