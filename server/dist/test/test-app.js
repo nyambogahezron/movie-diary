@@ -10,7 +10,6 @@ const cookie_parser_1 = __importDefault(require("cookie-parser"));
 const auth_1 = __importDefault(require("../routes/auth"));
 const movies_1 = __importDefault(require("../routes/movies"));
 const watchlists_1 = __importDefault(require("../routes/watchlists"));
-const watchlistMovies_1 = __importDefault(require("../routes/watchlistMovies"));
 const favorites_1 = __importDefault(require("../routes/favorites"));
 // Mock the database connection
 jest.mock('../db', () => {
@@ -30,7 +29,6 @@ function createTestApp() {
     app.use('/api/auth', auth_1.default);
     app.use('/api/movies', movies_1.default);
     app.use('/api/watchlists', watchlists_1.default);
-    app.use('/api/watchlists', watchlistMovies_1.default);
     app.use('/api/favorites', favorites_1.default);
     // Health check route
     app.get('/health', (_req, res) => {

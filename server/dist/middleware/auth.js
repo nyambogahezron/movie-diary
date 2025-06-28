@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.optionalAuthMiddleware = exports.authMiddleware = void 0;
+exports.adminCheck = exports.optionalAuthMiddleware = exports.authMiddleware = void 0;
 const AuthService_1 = require("../services/AuthService");
 const authMiddleware = async (req, res, next) => {
     try {
@@ -61,4 +61,14 @@ const optionalAuthMiddleware = async (req, res, next) => {
     }
 };
 exports.optionalAuthMiddleware = optionalAuthMiddleware;
+const adminCheck = (req, res, next) => {
+    if (!req.user || req.user.role !== 'admin') {
+        res
+            .status(403)
+            .json({ error: 'Access denied. Admin privileges required.' });
+        return;
+    }
+    next();
+};
+exports.adminCheck = adminCheck;
 //# sourceMappingURL=auth.js.map

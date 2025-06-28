@@ -4,7 +4,6 @@ import cookieParser from 'cookie-parser';
 import authRoutes from '../routes/auth';
 import movieRoutes from '../routes/movies';
 import watchlistRoutes from '../routes/watchlists';
-import watchlistMoviesRoutes from '../routes/watchlistMovies';
 import favoriteRoutes from '../routes/favorites';
 import { setupTestDatabase } from './setup';
 
@@ -29,7 +28,6 @@ export function createTestApp() {
 	app.use('/api/auth', authRoutes);
 	app.use('/api/movies', movieRoutes);
 	app.use('/api/watchlists', watchlistRoutes);
-	app.use('/api/watchlists', watchlistMoviesRoutes);
 	app.use('/api/favorites', favoriteRoutes);
 
 	// Health check route

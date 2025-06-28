@@ -1,3 +1,4 @@
+import { BadRequestError } from '../utils/errors';
 import { db } from '../db';
 import { requestLogs, userAnalytics, endpointAnalytics } from '../db/schema';
 import { users } from '../db/schema';
@@ -192,7 +193,7 @@ export class AnalyticsService {
 			.limit(1);
 
 		if (!userInfo.length) {
-			throw new Error('User not found');
+			throw new BadRequestError('User not found');
 		}
 
 		const aggregatedData = await db
@@ -278,15 +279,11 @@ export class AnalyticsService {
 		};
 	}
 
-	/**
-	 * Get overall system analytics
-	 */
 	async getSystemAnalytics(startDate?: string, endDate?: string) {
 		const currentDate = new Date().toISOString().split('T')[0];
 		const start = startDate || currentDate;
 		const end = endDate || currentDate;
 
-		// Get total requests and average response time
 		const requestStats = await db
 			.select({
 				totalRequests: sql`COUNT(*)`,
@@ -302,7 +299,6 @@ export class AnalyticsService {
 				)
 			);
 
-		// Get daily request counts
 		const dailyStats = await db
 			.select({
 				date: sql`date(${requestLogs.timestamp})`,
@@ -321,7 +317,6 @@ export class AnalyticsService {
 			.groupBy(sql`date(${requestLogs.timestamp})`)
 			.orderBy(asc(sql`date(${requestLogs.timestamp})`));
 
-		// Get top endpoints by usage
 		const topEndpoints = await db
 			.select({
 				endpoint: requestLogs.endpoint,
@@ -340,7 +335,6 @@ export class AnalyticsService {
 			.orderBy(desc(sql`COUNT(*)`))
 			.limit(10);
 
-		// Get active user count
 		const activeUserCount = await db
 			.select({
 				count: sql`COUNT(DISTINCT ${requestLogs.userId})`,
@@ -354,7 +348,6 @@ export class AnalyticsService {
 				)
 			);
 
-		// Get error breakdown
 		const errorBreakdown = await db
 			.select({
 				statusCode: requestLogs.statusCode,
@@ -387,9 +380,6 @@ export class AnalyticsService {
 		};
 	}
 
-	/**
-	 * Get real-time analytics for the past hour
-	 */
 	async getRealTimeAnalytics() {
 		const oneHourAgo = new Date();
 		oneHourAgo.setHours(oneHourAgo.getHours() - 1);

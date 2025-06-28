@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.AnalyticsService = void 0;
+const errors_1 = require("../utils/errors");
 const db_1 = require("../db");
 const schema_1 = require("../db/schema");
 const schema_2 = require("../db/schema");
@@ -146,7 +147,7 @@ class AnalyticsService {
             .where((0, drizzle_orm_1.eq)(schema_2.users.id, userId))
             .limit(1);
         if (!userInfo.length) {
-            throw new Error('User not found');
+            throw new errors_1.BadRequestError('User not found');
         }
         const aggregatedData = await db_1.db
             .select({
@@ -204,14 +205,10 @@ class AnalyticsService {
             recentActivity,
         };
     }
-    /**
-     * Get overall system analytics
-     */
     async getSystemAnalytics(startDate, endDate) {
         const currentDate = new Date().toISOString().split('T')[0];
         const start = startDate || currentDate;
         const end = endDate || currentDate;
-        // Get total requests and average response time
         const requestStats = await db_1.db
             .select({
             totalRequests: (0, drizzle_orm_1.sql) `COUNT(*)`,
@@ -221,7 +218,6 @@ class AnalyticsService {
         })
             .from(schema_1.requestLogs)
             .where((0, drizzle_orm_1.and)((0, drizzle_orm_1.sql) `datetime(${schema_1.requestLogs.timestamp}) >= datetime('${start}')`, (0, drizzle_orm_1.sql) `datetime(${schema_1.requestLogs.timestamp}) <= datetime('${end}')`));
-        // Get daily request counts
         const dailyStats = await db_1.db
             .select({
             date: (0, drizzle_orm_1.sql) `date(${schema_1.requestLogs.timestamp})`,
@@ -234,7 +230,6 @@ class AnalyticsService {
             .where((0, drizzle_orm_1.and)((0, drizzle_orm_1.sql) `datetime(${schema_1.requestLogs.timestamp}) >= datetime('${start}')`, (0, drizzle_orm_1.sql) `datetime(${schema_1.requestLogs.timestamp}) <= datetime('${end}')`))
             .groupBy((0, drizzle_orm_1.sql) `date(${schema_1.requestLogs.timestamp})`)
             .orderBy((0, drizzle_orm_1.asc)((0, drizzle_orm_1.sql) `date(${schema_1.requestLogs.timestamp})`));
-        // Get top endpoints by usage
         const topEndpoints = await db_1.db
             .select({
             endpoint: schema_1.requestLogs.endpoint,
@@ -247,14 +242,12 @@ class AnalyticsService {
             .groupBy(schema_1.requestLogs.endpoint, schema_1.requestLogs.method)
             .orderBy((0, drizzle_orm_1.desc)((0, drizzle_orm_1.sql) `COUNT(*)`))
             .limit(10);
-        // Get active user count
         const activeUserCount = await db_1.db
             .select({
             count: (0, drizzle_orm_1.sql) `COUNT(DISTINCT ${schema_1.requestLogs.userId})`,
         })
             .from(schema_1.requestLogs)
             .where((0, drizzle_orm_1.and)((0, drizzle_orm_1.sql) `datetime(${schema_1.requestLogs.timestamp}) >= datetime('${start}')`, (0, drizzle_orm_1.sql) `datetime(${schema_1.requestLogs.timestamp}) <= datetime('${end}')`, (0, drizzle_orm_1.sql) `${schema_1.requestLogs.userId} IS NOT NULL`));
-        // Get error breakdown
         const errorBreakdown = await db_1.db
             .select({
             statusCode: schema_1.requestLogs.statusCode,
@@ -279,9 +272,6 @@ class AnalyticsService {
             errorBreakdown,
         };
     }
-    /**
-     * Get real-time analytics for the past hour
-     */
     async getRealTimeAnalytics() {
         const oneHourAgo = new Date();
         oneHourAgo.setHours(oneHourAgo.getHours() - 1);

@@ -50,7 +50,7 @@ class User {
         return result[0];
     }
     static async findUser(identifier) {
-        const resultByUsername = this.findByUsername(identifier);
+        const resultByUsername = await this.findByUsername(identifier);
         if (resultByUsername) {
             return resultByUsername;
         }

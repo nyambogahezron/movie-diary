@@ -8,6 +8,7 @@ const cors_1 = __importDefault(require("cors"));
 const helmet_1 = __importDefault(require("helmet"));
 const express_rate_limit_1 = __importDefault(require("express-rate-limit"));
 const cookie_parser_1 = __importDefault(require("cookie-parser"));
+const path_1 = __importDefault(require("path"));
 const config_1 = require("./config");
 const auth_1 = __importDefault(require("./routes/auth"));
 const movies_1 = __importDefault(require("./routes/movies"));
@@ -16,6 +17,7 @@ const favorites_1 = __importDefault(require("./routes/favorites"));
 const movieReviews_1 = __importDefault(require("./routes/movieReviews"));
 const posts_1 = __importDefault(require("./routes/posts"));
 const analytics_1 = __importDefault(require("./routes/analytics"));
+const admin_1 = __importDefault(require("./routes/admin"));
 const analytics_2 = require("./middleware/analytics");
 const csrf_1 = require("./middleware/csrf");
 const errorHandler_1 = __importDefault(require("./middleware/errorHandler"));
@@ -33,7 +35,6 @@ app.use(limiter);
 app.use((0, helmet_1.default)({
     contentSecurityPolicy: config_1.config.server.isProduction ? undefined : false,
 }));
-// Apply security headers
 app.use((req, res, next) => {
     res.setHeader('X-Content-Type-Options', 'nosniff');
     res.setHeader('X-Frame-Options', 'DENY');
@@ -52,13 +53,10 @@ app.use((0, cors_1.default)({
         'X-API-Client',
     ],
 }));
-// Middleware
 app.use(express_1.default.json({ limit: '1mb' }));
 app.use((0, cookie_parser_1.default)(config_1.config.security.cookieSecret));
 app.use(analytics_2.analyticsMiddleware);
-// CSRF token endpoint
 app.get('/api/v1/csrf-token', csrf_1.generateCsrfToken);
-// Routes
 app.use('/api/v1/auth', auth_1.default);
 app.use('/api/v1/movies', movies_1.default);
 app.use('/api/v1/watchlists', watchlists_1.default);
@@ -66,13 +64,18 @@ app.use('/api/v1/favorites', favorites_1.default);
 app.use('/api/v1/reviews', movieReviews_1.default);
 app.use('/api/v1/posts', posts_1.default);
 app.use('/api/v1/analytics', analytics_1.default);
+app.use('/api/v1/admin', admin_1.default);
+// Serve static files
+app.use(express_1.default.static(path_1.default.join(__dirname, 'public')));
+app.use('/uploads', express_1.default.static(path_1.default.join(__dirname, '../uploads')));
 app.get('/', (_req, res) => {
     res.status(200).json({ status: 'ok', message: 'Server is running' });
 });
 app.use(errorHandler_1.default);
 app.use(notFound_1.default);
-app.listen(PORT, () => {
-    console.log(`Server is running  http://localhost:${PORT} in ${config_1.config.server.nodeEnv} mode`);
+app.listen(Number(PORT), '0.0.0.0', () => {
+    console.log(`Server is running on http://0.0.0.0:${PORT} in ${config_1.config.server.nodeEnv} mode`);
+    console.log(`Access from local network: ${config_1.config.server.CLIENT_URL}`);
 });
 exports.default = app;
 //# sourceMappingURL=index.js.map

@@ -14,7 +14,7 @@ export const authMiddleware = async (
 	req: Request,
 	res: Response,
 	next: NextFunction
-): Promise<void> => {
+) => {
 	try {
 		const accessToken = req.cookies?.accessToken;
 
@@ -62,7 +62,7 @@ export const optionalAuthMiddleware = async (
 	req: Request,
 	res: Response,
 	next: NextFunction
-): Promise<void> => {
+) => {
 	try {
 		let accessToken = req.cookies?.accessToken;
 
@@ -81,4 +81,14 @@ export const optionalAuthMiddleware = async (
 	} catch (error) {
 		next();
 	}
+};
+
+export const adminCheck = (req: Request, res: Response, next: NextFunction) => {
+	if (!req.user || req.user.role !== 'admin') {
+		res
+			.status(403)
+			.json({ error: 'Access denied. Admin privileges required.' });
+		return;
+	}
+	next();
 };

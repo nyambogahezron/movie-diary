@@ -19,6 +19,7 @@ exports.config = {
         port: process.env.PORT || 5000,
         nodeEnv: process.env.NODE_ENV || 'development',
         isProduction: process.env.NODE_ENV === 'production',
+        CLIENT_URL: process.env.CLIENT_URL,
     },
     security: {
         jwtSecret: process.env.JWT_SECRET || getSecretKey('jwt'),
@@ -27,7 +28,13 @@ exports.config = {
         accessTokenExpiry: process.env.ACCESS_TOKEN_EXPIRY || '15m',
         refreshTokenExpiry: process.env.REFRESH_TOKEN_EXPIRY || '7d',
         cors: {
-            origin: process.env.CLIENT_URL || 'http://localhost:3000',
+            origin: process.env.CLIENT_URL || [
+                'http://localhost:3000',
+                'http://127.0.0.1:3000',
+                /^http:\/\/192\.168\.213\.\d+:3000$/,
+                /^http:\/\/192\.168\.213\.\d+:5173$/,
+                /^http:\/\/192\.168\.213\.\d+:4173$/,
+            ],
             credentials: true,
         },
     },

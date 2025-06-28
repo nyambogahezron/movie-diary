@@ -38,8 +38,8 @@ AuthController.register = (0, asyncHandler_1.default)(async (req, res) => {
     });
 });
 AuthController.login = (0, asyncHandler_1.default)(async (req, res) => {
-    const { username, email, password } = req.body;
-    const loginIdentifier = username || email;
+    const { username, email, password, identifier } = req.body;
+    const loginIdentifier = identifier || username || email;
     if (!loginIdentifier || !password) {
         throw new errors_1.BadRequestError('Invalid Credentials');
     }

@@ -10,6 +10,7 @@ exports.users = (0, sqlite_core_1.sqliteTable)('users', {
     email: (0, sqlite_core_1.text)('email'),
     password: (0, sqlite_core_1.text)('password').notNull(),
     avatar: (0, sqlite_core_1.text)('avatar'),
+    role: (0, sqlite_core_1.text)('role').default('user').notNull(),
     isEmailVerified: (0, sqlite_core_1.integer)('is_email_verified', { mode: 'boolean' })
         .default(false)
         .notNull(),
