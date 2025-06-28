@@ -1,39 +1,63 @@
 import express from 'express';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
+import { config } from '../config';
+
 import authRoutes from '../routes/auth';
 import movieRoutes from '../routes/movies';
 import watchlistRoutes from '../routes/watchlists';
 import favoriteRoutes from '../routes/favorites';
-import { setupTestDatabase } from './setup';
+import movieReviewRoutes from '../routes/movieReviews';
+import postRoutes from '../routes/posts';
+import analyticsRoutes from '../routes/analytics';
+import adminRoutes from '../routes/admin';
 
-// Mock the database connection
+import { analyticsMiddleware } from '../middleware/analytics';
+import { generateCsrfToken } from '../middleware/csrf';
+import errorHandler from '../middleware/errorHandler';
+import NotFoundHandler from '../middleware/notFound';
+
 jest.mock('../db', () => {
 	return {
 		db: require('../db/test-db').db,
 	};
 });
 
-// Create Express app for testing
 export function createTestApp() {
-	// Create Express app
 	const app = express();
 
-	// Middleware
-	app.use(express.json());
-	app.use(cors());
-	app.use(cookieParser());
+	app.use(express.json({ limit: '1mb' }));
+	app.use(
+		cors({
+			origin: true,
+			credentials: true,
+			allowedHeaders: [
+				'Content-Type',
+				'Authorization',
+				'X-CSRF-Token',
+				'X-API-Client',
+			],
+		})
+	);
+	app.use(cookieParser(config.security.cookieSecret));
 
-	// Routes
-	app.use('/api/auth', authRoutes);
-	app.use('/api/movies', movieRoutes);
-	app.use('/api/watchlists', watchlistRoutes);
-	app.use('/api/favorites', favoriteRoutes);
+	app.get('/api/v1/csrf-token', generateCsrfToken);
 
-	// Health check route
-	app.get('/health', (_req, res) => {
+	app.use('/api/v1/auth', authRoutes);
+	app.use('/api/v1/movies', movieRoutes);
+	app.use('/api/v1/watchlists', watchlistRoutes);
+	app.use('/api/v1/favorites', favoriteRoutes);
+	app.use('/api/v1/reviews', movieReviewRoutes);
+	app.use('/api/v1/posts', postRoutes);
+	app.use('/api/v1/analytics', analyticsRoutes);
+	app.use('/api/v1/admin', adminRoutes);
+
+	app.get('/', (_req, res) => {
 		res.status(200).json({ status: 'ok', message: 'Server is running' });
 	});
+
+	app.use(errorHandler);
+	app.use(NotFoundHandler);
 
 	return app;
 }

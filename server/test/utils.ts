@@ -3,7 +3,6 @@ import jwt from 'jsonwebtoken';
 import * as schema from '../db/schema';
 import bcrypt from 'bcrypt';
 
-// Create a test user and return authentication token
 export async function createTestUser(userData = {}) {
 	const defaultUserData = {
 		name: 'Test User',
@@ -14,7 +13,6 @@ export async function createTestUser(userData = {}) {
 
 	const mergedData = { ...defaultUserData, ...userData };
 
-	// Insert user into database
 	const insertedUser = await db
 		.insert(schema.users)
 		.values(mergedData)
@@ -22,7 +20,6 @@ export async function createTestUser(userData = {}) {
 
 	const user = insertedUser[0];
 
-	// Generate token
 	const token = jwt.sign(
 		{ id: user.id, email: user.email },
 		process.env.JWT_SECRET || 'test_secret',
@@ -32,7 +29,6 @@ export async function createTestUser(userData = {}) {
 	return { user, token };
 }
 
-// Helper to create a test movie
 export async function createTestMovie(movieData = {}, userId: number) {
 	const defaultMovieData = {
 		title: 'Test Movie',
@@ -53,7 +49,6 @@ export async function createTestMovie(movieData = {}, userId: number) {
 	return insertedMovie[0];
 }
 
-// Helper to create a test watchlist
 export async function createTestWatchlist(watchlistData = {}, userId: number) {
 	const defaultWatchlistData = {
 		name: 'Test Watchlist',
@@ -72,7 +67,6 @@ export async function createTestWatchlist(watchlistData = {}, userId: number) {
 	return insertedWatchlist[0];
 }
 
-// Helper function to attach authentication cookie to supertest request
 export function attachAuthCookie(request: any, token: string) {
 	return request.set('Cookie', [`accessToken=${token}`]);
 }
