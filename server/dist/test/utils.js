@@ -44,7 +44,6 @@ const test_db_1 = require("../db/test-db");
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const schema = __importStar(require("../db/schema"));
 const bcrypt_1 = __importDefault(require("bcrypt"));
-// Create a test user and return authentication token
 async function createTestUser(userData = {}) {
     const defaultUserData = {
         name: 'Test User',
@@ -53,17 +52,14 @@ async function createTestUser(userData = {}) {
         password: await bcrypt_1.default.hash('password123', 10),
     };
     const mergedData = { ...defaultUserData, ...userData };
-    // Insert user into database
     const insertedUser = await test_db_1.db
         .insert(schema.users)
         .values(mergedData)
         .returning();
     const user = insertedUser[0];
-    // Generate token
     const token = jsonwebtoken_1.default.sign({ id: user.id, email: user.email }, process.env.JWT_SECRET || 'test_secret', { expiresIn: '1h' });
     return { user, token };
 }
-// Helper to create a test movie
 async function createTestMovie(movieData = {}, userId) {
     const defaultMovieData = {
         title: 'Test Movie',
@@ -80,7 +76,6 @@ async function createTestMovie(movieData = {}, userId) {
         .returning();
     return insertedMovie[0];
 }
-// Helper to create a test watchlist
 async function createTestWatchlist(watchlistData = {}, userId) {
     const defaultWatchlistData = {
         name: 'Test Watchlist',
@@ -95,7 +90,6 @@ async function createTestWatchlist(watchlistData = {}, userId) {
         .returning();
     return insertedWatchlist[0];
 }
-// Helper function to attach authentication cookie to supertest request
 function attachAuthCookie(request, token) {
     return request.set('Cookie', [`accessToken=${token}`]);
 }

@@ -1,6 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
+import path from 'path';
 import { config } from '../config';
 
 import authRoutes from '../routes/auth';
@@ -27,6 +28,10 @@ export function createTestApp() {
 	const app = express();
 
 	app.use(express.json({ limit: '1mb' }));
+
+	// Serve static files for uploads in test environment
+	app.use('/uploads', express.static(path.join(__dirname, '..', 'uploads')));
+
 	app.use(
 		cors({
 			origin: true,

@@ -6,3 +6,8 @@ db/database.sqlite3
 
 coverage/
 .vscode/
+
+# Uploaded files (keep directory structure but ignore actual uploads)
+uploads/**/*
+!uploads/.gitkeep
+!uploads/avatars/.gitkeep

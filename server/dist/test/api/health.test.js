@@ -9,7 +9,7 @@ describe('Health Check', () => {
     const app = (0, test_app_1.createTestApp)();
     const request = (0, supertest_1.default)(app);
     it('should return status 200 and ok message', async () => {
-        const response = await request.get('/health');
+        const response = await request.get('/');
         expect(response.status).toBe(200);
         expect(response.body).toEqual({
             status: 'ok',

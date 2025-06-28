@@ -8,12 +8,9 @@ exports.AuthController = void 0;
 const AuthService_1 = require("../services/AuthService");
 const asyncHandler_1 = __importDefault(require("../middleware/asyncHandler"));
 const errors_1 = require("../utils/errors");
-const crypto_1 = __importDefault(require("crypto"));
-const db_1 = require("../db");
-const schema_1 = require("../db/schema");
-const drizzle_orm_1 = require("drizzle-orm");
-const EmailService_1 = require("../services/EmailService");
 const User_1 = require("../helpers/User");
+const path_1 = __importDefault(require("path"));
+const fs_1 = __importDefault(require("fs"));
 class AuthController {
 }
 exports.AuthController = AuthController;
@@ -154,31 +151,25 @@ AuthController.updateEmail = (0, asyncHandler_1.default)(async (req, res) => {
         message: 'Email update initiated. Please verify your new email address.',
     });
 });
-AuthController.resendVerificationEmail = (0, asyncHandler_1.default)(async (req, res) => {
-    const { email } = req.body;
-    if (!email) {
-        res.status(400).json({ error: 'Email is required' });
-        return;
+AuthController.uploadAvatar = (0, asyncHandler_1.default)(async (req, res) => {
+    if (!req.file) {
+        throw new errors_1.BadRequestError('No file uploaded');
     }
-    const user = await User_1.User.findByEmail(email);
-    if (!user) {
-        throw new errors_1.BadRequestError('User not found');
+    const userId = req.user.id;
+    const avatarPath = `/uploads/avatars/${req.file.filename}`;
+    // Delete old avatar if it exists
+    const currentUser = await User_1.User.findById(userId);
+    if (currentUser?.avatar) {
+        const oldAvatarPath = path_1.default.join(process.cwd(), currentUser.avatar);
+        if (fs_1.default.existsSync(oldAvatarPath)) {
+            fs_1.default.unlinkSync(oldAvatarPath);
+        }
     }
-    if (user.isEmailVerified) {
-        throw new errors_1.BadRequestError('Email already verified');
-    }
-    const emailVerificationToken = crypto_1.default.randomBytes(32).toString('hex');
-    const emailVerificationExpires = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
-    await db_1.db
-        .update(schema_1.users)
-        .set({
-        emailVerificationToken,
-        emailVerificationExpires,
-    })
-        .where((0, drizzle_orm_1.eq)(schema_1.users.id, user.id));
-    await EmailService_1.EmailService.sendVerificationEmail(user, emailVerificationToken);
+    // Update user's avatar in database
+    await User_1.User.updateAvatar(userId, avatarPath);
     res.status(200).json({
-        message: 'Verification email sent successfully',
+        message: 'Avatar uploaded successfully',
+        avatarUrl: avatarPath,
     });
 });
 //# sourceMappingURL=AuthController.js.map

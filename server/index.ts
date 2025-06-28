@@ -68,6 +68,10 @@ app.use(
 
 app.use(express.json({ limit: '1mb' }));
 app.use(cookieParser(config.security.cookieSecret));
+
+// Serve static files for uploads
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
 app.use(analyticsMiddleware);
 app.get('/api/v1/csrf-token', generateCsrfToken);
 
@@ -82,7 +86,6 @@ app.use('/api/v1/admin', adminRoutes);
 
 // Serve static files
 app.use(express.static(path.join(__dirname, 'public')));
-app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
 app.get('/', (_req, res) => {
 	res.status(200).json({ status: 'ok', message: 'Server is running' });

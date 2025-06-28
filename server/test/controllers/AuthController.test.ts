@@ -19,7 +19,6 @@ describe('AuthController', () => {
 	});
 
 	beforeEach(async () => {
-		// Clear database between tests
 		await db.delete(schema.users);
 	});
 

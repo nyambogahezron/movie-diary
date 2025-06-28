@@ -8,6 +8,8 @@ import { users } from '../db/schema';
 import { eq } from 'drizzle-orm';
 import { EmailService } from '../services/EmailService';
 import { User } from '../helpers/User';
+import path from 'path';
+import fs from 'fs';
 
 export class AuthController {
 	static register = AsyncHandler(async (req: Request, res: Response) => {
@@ -198,43 +200,29 @@ export class AuthController {
 		});
 	});
 
-	static resendVerificationEmail = AsyncHandler(
-		async (req: Request, res: Response) => {
-			const { email } = req.body;
-
-			if (!email) {
-				res.status(400).json({ error: 'Email is required' });
-				return;
-			}
-
-			const user = await User.findByEmail(email);
-
-			if (!user) {
-				throw new BadRequestError('User not found');
-			}
-
-			if (user.isEmailVerified) {
-				throw new BadRequestError('Email already verified');
-			}
-
-			const emailVerificationToken = crypto.randomBytes(32).toString('hex');
-			const emailVerificationExpires = new Date(
-				Date.now() + 24 * 60 * 60 * 1000
-			).toISOString();
-
-			await db
-				.update(users)
-				.set({
-					emailVerificationToken,
-					emailVerificationExpires,
-				})
-				.where(eq(users.id, user.id));
-
-			await EmailService.sendVerificationEmail(user, emailVerificationToken);
-
-			res.status(200).json({
-				message: 'Verification email sent successfully',
-			});
+	static uploadAvatar = AsyncHandler(async (req: Request, res: Response) => {
+		if (!req.file) {
+			throw new BadRequestError('No file uploaded');
 		}
-	);
+
+		const userId = req.user!.id;
+		const avatarPath = `/uploads/avatars/${req.file.filename}`;
+
+		// Delete old avatar if it exists
+		const currentUser = await User.findById(userId);
+		if (currentUser?.avatar) {
+			const oldAvatarPath = path.join(process.cwd(), currentUser.avatar);
+			if (fs.existsSync(oldAvatarPath)) {
+				fs.unlinkSync(oldAvatarPath);
+			}
+		}
+
+		// Update user's avatar in database
+		await User.updateAvatar(userId, avatarPath);
+
+		res.status(200).json({
+			message: 'Avatar uploaded successfully',
+			avatarUrl: avatarPath,
+		});
+	});
 }

@@ -55,6 +55,8 @@ app.use((0, cors_1.default)({
 }));
 app.use(express_1.default.json({ limit: '1mb' }));
 app.use((0, cookie_parser_1.default)(config_1.config.security.cookieSecret));
+// Serve static files for uploads
+app.use('/uploads', express_1.default.static(path_1.default.join(__dirname, 'uploads')));
 app.use(analytics_2.analyticsMiddleware);
 app.get('/api/v1/csrf-token', csrf_1.generateCsrfToken);
 app.use('/api/v1/auth', auth_1.default);
@@ -67,7 +69,6 @@ app.use('/api/v1/analytics', analytics_1.default);
 app.use('/api/v1/admin', admin_1.default);
 // Serve static files
 app.use(express_1.default.static(path_1.default.join(__dirname, 'public')));
-app.use('/uploads', express_1.default.static(path_1.default.join(__dirname, '../uploads')));
 app.get('/', (_req, res) => {
     res.status(200).json({ status: 'ok', message: 'Server is running' });
 });

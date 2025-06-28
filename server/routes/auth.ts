@@ -3,6 +3,7 @@ import { AuthController } from '../controllers/AuthController';
 import { authMiddleware } from '../middleware/auth';
 import { validate } from '../middleware/validate';
 import { authValidation } from '../utils/validations/auth.validation';
+import { uploadAvatarMiddleware } from '../middleware/upload';
 
 const router = express.Router();
 
@@ -24,12 +25,6 @@ router.post(
 router.get('/verify-email', AuthController.verifyEmail);
 
 router.post(
-	'/resend-verification',
-	validate(authValidation.resendVerification),
-	AuthController.resendVerificationEmail
-);
-
-router.post(
 	'/request-password-reset',
 	validate(authValidation.requestPasswordReset),
 	AuthController.requestPasswordReset
@@ -46,6 +41,13 @@ router.post(
 	authMiddleware,
 	validate(authValidation.updateEmail),
 	AuthController.updateEmail
+);
+
+router.post(
+	'/upload-avatar',
+	authMiddleware,
+	uploadAvatarMiddleware,
+	AuthController.uploadAvatar
 );
 
 export default router;
