@@ -14,6 +14,7 @@ const drizzle_orm_1 = require("drizzle-orm");
 const errors_1 = require("../utils/errors");
 const EmailService_1 = require("./EmailService");
 const signedTokens_1 = __importDefault(require("../utils/signedTokens"));
+const config_1 = require("config");
 class AuthService {
     static async register(name, username, email, password, ipAddress) {
         const isEmailTaken = await User_1.User.findByEmail(email);
@@ -33,8 +34,30 @@ class AuthService {
             lastLoginIp: ipAddress,
             lastLoginAt: new Date().toISOString(),
         });
-        await EmailService_1.EmailService.sendVerificationEmail(user, emailVerificationToken);
-        await EmailService_1.EmailService.sendWelcomeEmail(user);
+        await EmailService_1.EmailService.sendVerificationEmail({
+            id: user.id,
+            username: user.username,
+            name: user.name,
+            email: user.email,
+            createdAt: user.createdAt instanceof Date
+                ? user.createdAt.toISOString()
+                : user.createdAt,
+            updatedAt: user.updatedAt instanceof Date
+                ? user.updatedAt.toISOString()
+                : user.updatedAt,
+        }, emailVerificationToken);
+        await EmailService_1.EmailService.sendWelcomeEmail({
+            id: user.id,
+            username: user.username,
+            name: user.name,
+            email: user.email,
+            createdAt: user.createdAt instanceof Date
+                ? user.createdAt.toISOString()
+                : user.createdAt,
+            updatedAt: user.updatedAt instanceof Date
+                ? user.updatedAt.toISOString()
+                : user.updatedAt,
+        });
         return { user };
     }
     static async login(identifier, password, ipAddress, deviceInfo) {
@@ -49,11 +72,19 @@ class AuthService {
         if (!user.isEmailVerified) {
             throw new errors_1.UnauthorizedError('Please verify your email address first');
         }
-        // Check if this is a new login from different IP
         const previousIp = user.lastLoginIp;
         if (ipAddress && previousIp && ipAddress !== previousIp) {
-            // New device detected - send notification email
-            await EmailService_1.EmailService.sendNewLoginAlert(user, ipAddress, deviceInfo || 'Unknown device');
+            await EmailService_1.EmailService.sendNewLoginAlert({
+                ...user,
+                username: user.username ?? '',
+                email: user.email ?? '',
+                createdAt: user.createdAt instanceof Date
+                    ? user.createdAt.toISOString()
+                    : user.createdAt,
+                updatedAt: user.updatedAt instanceof Date
+                    ? user.updatedAt.toISOString()
+                    : user.updatedAt,
+            }, ipAddress, deviceInfo || 'Unknown device');
         }
         await User_1.User.updateLoginInfo(user.id, ipAddress || null, new Date().toISOString());
         const { accessToken, refreshToken } = this.generateTokens(user, deviceInfo);
@@ -110,7 +141,6 @@ class AuthService {
         }
         // Generate a 6-digit reset code
         const resetCode = signedTokens_1.default.generateResetCode();
-        // Hash the reset code for storage
         const hashedResetToken = signedTokens_1.default.hashResetCode(resetCode, user.id);
         const resetExpires = new Date(Date.now() + 60 * 60 * 1000).toISOString(); // 1 hour
         await db_1.db
@@ -118,24 +148,26 @@ class AuthService {
             .set({
             passwordResetToken: hashedResetToken,
             passwordResetExpires: resetExpires,
-            updatedAt: new Date().toISOString(),
+            updatedAt: new Date(),
         })
             .where((0, drizzle_orm_1.eq)(schema_1.users.id, user.id));
         // Send the plain text code to the user's email
-        await EmailService_1.EmailService.sendPasswordResetEmail(user, resetCode);
+        await EmailService_1.EmailService.sendPasswordResetEmail({
+            id: user.id,
+            username: user.username,
+            name: user.name,
+            email: user.email,
+        }, resetCode);
         return;
     }
     static async resetPassword(code, email, newPassword) {
-        // First find user by email
         const user = await User_1.User.findByEmail(email);
         if (!user) {
             throw new errors_1.BadRequestError('User not found');
         }
-        // Check if user has a reset token
         if (!user.passwordResetToken) {
             throw new errors_1.BadRequestError('No reset code requested');
         }
-        // Check if reset code has expired based on passwordResetExpires field
         if (user.passwordResetExpires &&
             new Date(user.passwordResetExpires) < new Date()) {
             throw new errors_1.BadRequestError('Reset code has expired');
@@ -152,10 +184,15 @@ class AuthService {
             password: hashedPassword,
             passwordResetToken: null,
             passwordResetExpires: null,
-            updatedAt: new Date().toISOString(),
+            updatedAt: new Date(),
         })
             .where((0, drizzle_orm_1.eq)(schema_1.users.id, user.id));
-        await EmailService_1.EmailService.sendPasswordChangeNotification(user);
+        await EmailService_1.EmailService.sendPasswordChangeNotification({
+            id: user.id,
+            username: user.username,
+            name: user.name,
+            email: user.email,
+        });
     }
     static async updateEmail(userId, newEmail) {
         const existingUser = await User_1.User.findByEmail(newEmail);
@@ -177,9 +214,19 @@ class AuthService {
             emailVerificationExpires: verificationExpires,
         })
             .where((0, drizzle_orm_1.eq)(schema_1.users.id, userId));
-        await EmailService_1.EmailService.sendEmailChangeNotification(user, oldEmail, newEmail);
+        await EmailService_1.EmailService.sendEmailChangeNotification({
+            id: user.id,
+            username: user.username,
+            name: user.name,
+            email: user.email,
+        }, oldEmail ?? '', newEmail);
         user.email = newEmail;
-        await EmailService_1.EmailService.sendVerificationEmail(user, verificationToken);
+        await EmailService_1.EmailService.sendVerificationEmail({
+            id: user.id,
+            username: user.username,
+            name: user.name,
+            email: user.email,
+        }, verificationToken);
     }
     static generateTokens(user, deviceInfo) {
         const accessToken = this.generateAccessToken(user, deviceInfo);
@@ -200,9 +247,9 @@ class AuthService {
     }
 }
 exports.AuthService = AuthService;
-AuthService.JWT_SECRET = process.env.JWT_SECRET;
-AuthService.JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET;
+AuthService.JWT_SECRET = config_1.config.security.jwtSecret;
+AuthService.JWT_REFRESH_SECRET = config_1.config.security.jwtRefreshSecret;
 AuthService.ACCESS_TOKEN_EXPIRY = '15m';
 AuthService.REFRESH_TOKEN_EXPIRY = '7d';
-AuthService.RESET_TOKEN_SECRET = process.env.RESET_TOKEN_SECRET || process.env.JWT_SECRET;
+AuthService.RESET_TOKEN_SECRET = process.env.RESET_TOKEN_SECRET || config_1.config.security.jwtSecret;
 //# sourceMappingURL=AuthService.js.map

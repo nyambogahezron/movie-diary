@@ -46,7 +46,7 @@ class PostComment {
             .update(schema_1.postComments)
             .set({
             content,
-            updatedAt: new Date().toISOString(),
+            updatedAt: new Date(),
         })
             .where((0, drizzle_orm_1.eq)(schema_1.postComments.id, id));
     }

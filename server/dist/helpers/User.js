@@ -66,7 +66,7 @@ class User {
     static async updateAvatar(userId, avatar) {
         await db_1.db
             .update(schema_1.users)
-            .set({ avatar, updatedAt: new Date().toISOString() })
+            .set({ avatar, updatedAt: new Date() })
             .where((0, drizzle_orm_1.eq)(schema_1.users.id, userId));
     }
     static async updateLoginInfo(userId, ip, timestamp) {
@@ -75,7 +75,7 @@ class User {
             .set({
             lastLoginIp: ip,
             lastLoginAt: timestamp,
-            updatedAt: new Date().toISOString(),
+            updatedAt: new Date(),
         })
             .where((0, drizzle_orm_1.eq)(schema_1.users.id, userId));
     }
@@ -103,7 +103,7 @@ class User {
             isEmailVerified: true,
             emailVerificationToken: null,
             emailVerificationExpires: null,
-            updatedAt: new Date().toISOString(),
+            updatedAt: new Date(),
         })
             .where((0, drizzle_orm_1.eq)(schema_1.users.id, user.id));
         return user;
@@ -114,7 +114,7 @@ class User {
             .update(schema_1.users)
             .set({
             password: hashedPassword,
-            updatedAt: new Date().toISOString(),
+            updatedAt: new Date(),
         })
             .where((0, drizzle_orm_1.eq)(schema_1.users.id, userId));
     }
@@ -124,7 +124,7 @@ class User {
             .set({
             email: email.toLowerCase(),
             isEmailVerified: false,
-            updatedAt: new Date().toISOString(),
+            updatedAt: new Date(),
         })
             .where((0, drizzle_orm_1.eq)(schema_1.users.id, userId));
     }

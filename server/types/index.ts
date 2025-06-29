@@ -13,8 +13,28 @@ export interface User {
 	passwordResetExpires?: string | null;
 	lastLoginAt?: string | null;
 	lastLoginIp?: string | null;
-	createdAt: string;
-	updatedAt: string;
+	createdAt: Date;
+	updatedAt: Date;
+}
+
+// Type for email operations that expects string dates
+export interface UserForEmail {
+	id: number;
+	username: string;
+	name: string;
+	email: string;
+	password?: string;
+	avatar?: string | null;
+	role?: string;
+	isEmailVerified?: boolean;
+	emailVerificationToken?: string | null;
+	emailVerificationExpires?: string | null;
+	passwordResetToken?: string | null;
+	passwordResetExpires?: string | null;
+	lastLoginAt?: string | null;
+	lastLoginIp?: string | null;
+	createdAt?: string;
+	updatedAt?: string;
 }
 
 export interface IUser {
@@ -31,8 +51,8 @@ export interface IUser {
 	passwordResetExpires?: string | null;
 	lastLoginAt?: string | null;
 	lastLoginIp?: string | null;
-	createdAt: string;
-	updatedAt: string;
+	createdAt: Date;
+	updatedAt: Date;
 }
 
 export interface Movie {

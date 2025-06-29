@@ -1,0 +1,228 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                         Int       @id @default(autoincrement())
+  name                       String
+  username                   String?   @unique
+  email                      String?   @unique
+  password                   String
+  avatar                     String?
+  role                       String    @default("user")
+  isEmailVerified           Boolean   @default(false) @map("is_email_verified")
+  emailVerificationToken    String?   @map("email_verification_token")
+  emailVerificationExpires  String?   @map("email_verification_expires")
+  passwordResetToken        String?   @map("password_reset_token")
+  passwordResetExpires      String?   @map("password_reset_expires")
+  lastLoginAt               String?   @map("last_login_at")
+  lastLoginIp               String?   @map("last_login_ip")
+  createdAt                 DateTime  @default(now()) @map("created_at")
+  updatedAt                 DateTime  @default(now()) @updatedAt @map("updated_at")
+
+  // Relations
+  movies         Movie[]
+  watchlists     Watchlist[]
+  favorites      Favorite[]
+  movieReviews   MovieReview[]
+  posts          Post[]
+  postLikes      PostLike[]
+  postComments   PostComment[]
+  requestLogs    RequestLog[]
+  userAnalytics  UserAnalytic[]
+
+  @@map("users")
+}
+
+model Movie {
+  id          Int      @id @default(autoincrement())
+  title       String
+  tmdbId      String   @map("tmdb_id")
+  posterPath  String?  @map("poster_path")
+  releaseDate String?  @map("release_date")
+  overview    String?
+  rating      Int?
+  watchDate   String?  @map("watch_date")
+  review      String?
+  genres      String?
+  userId      Int      @map("user_id")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @default(now()) @updatedAt @map("updated_at")
+
+  // Relations
+  user             User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  watchlistMovies  WatchlistMovie[]
+  favorites        Favorite[]
+  movieReviews     MovieReview[]
+
+  @@map("movies")
+}
+
+model Watchlist {
+  id          Int      @id @default(autoincrement())
+  userId      Int      @map("user_id")
+  name        String
+  description String?
+  isPublic    Boolean  @default(false) @map("is_public")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @default(now()) @updatedAt @map("updated_at")
+
+  // Relations
+  user             User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  watchlistMovies  WatchlistMovie[]
+
+  @@map("watchlists")
+}
+
+model WatchlistMovie {
+  id          Int      @id @default(autoincrement())
+  watchlistId Int      @map("watchlist_id")
+  movieId     Int      @map("movie_id")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  // Relations
+  watchlist Watchlist @relation(fields: [watchlistId], references: [id], onDelete: Cascade)
+  movie     Movie     @relation(fields: [movieId], references: [id], onDelete: Cascade)
+
+  @@map("watchlist_movies")
+}
+
+model Favorite {
+  id        Int      @id @default(autoincrement())
+  userId    Int      @map("user_id")
+  movieId   Int      @map("movie_id")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  // Relations
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  movie Movie @relation(fields: [movieId], references: [id], onDelete: Cascade)
+
+  @@map("favorites")
+}
+
+model MovieReview {
+  id        Int      @id @default(autoincrement())
+  userId    Int      @map("user_id")
+  movieId   Int      @map("movie_id")
+  content   String
+  rating    Int?
+  isPublic  Boolean  @default(true) @map("is_public")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at")
+
+  // Relations
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  movie Movie @relation(fields: [movieId], references: [id], onDelete: Cascade)
+
+  @@map("movie_reviews")
+}
+
+model Post {
+  id            Int      @id @default(autoincrement())
+  userId        Int      @map("user_id")
+  tmdbId        String   @map("tmdb_id")
+  posterPath    String?  @map("poster_path")
+  title         String
+  content       String
+  likesCount    Int      @default(0) @map("likes_count")
+  commentsCount Int      @default(0) @map("comments_count")
+  isPublic      Boolean  @default(true) @map("is_public")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @default(now()) @updatedAt @map("updated_at")
+
+  // Relations
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  postLikes    PostLike[]
+  postComments PostComment[]
+
+  @@map("posts")
+}
+
+model PostLike {
+  id        Int      @id @default(autoincrement())
+  userId    Int      @map("user_id")
+  postId    Int      @map("post_id")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@map("post_likes")
+}
+
+model PostComment {
+  id        Int      @id @default(autoincrement())
+  userId    Int      @map("user_id")
+  postId    Int      @map("post_id")
+  content   String
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at")
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@map("post_comments")
+}
+
+model RequestLog {
+  id            Int      @id @default(autoincrement())
+  userId        Int?     @map("user_id")
+  method        String
+  path          String
+  endpoint      String
+  statusCode    Int      @map("status_code")
+  responseTime  Int      @map("response_time")
+  timestamp     DateTime @default(now())
+  userAgent     String?  @map("user_agent")
+  ipAddress     String?  @map("ip_address")
+  contentLength Int?     @map("content_length")
+  query         String?
+  body          String?
+
+  // Relations
+  user User? @relation(fields: [userId], references: [id])
+
+  @@map("request_logs")
+}
+
+model UserAnalytic {
+  id              Int      @id @default(autoincrement())
+  userId          Int?     @map("user_id")
+  totalRequests   Int      @default(0) @map("total_requests")
+  lastActivity    DateTime @default(now()) @map("last_activity")
+  avgResponseTime Int      @default(0) @map("avg_response_time")
+  date            String
+
+  // Relations
+  user User? @relation(fields: [userId], references: [id])
+
+  @@map("user_analytics")
+}
+
+model EndpointAnalytic {
+  id              Int     @id @default(autoincrement())
+  endpoint        String
+  method          String
+  totalRequests   Int     @default(0) @map("total_requests")
+  avgResponseTime Int     @default(0) @map("avg_response_time")
+  minResponseTime Int?    @map("min_response_time")
+  maxResponseTime Int?    @map("max_response_time")
+  successCount    Int     @default(0) @map("success_count")
+  errorCount      Int     @default(0) @map("error_count")
+  date            String
+
+  @@map("endpoint_analytics")
+}

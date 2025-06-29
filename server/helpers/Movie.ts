@@ -1,7 +1,7 @@
 import { db } from '../db';
 import { movies } from '../db/schema';
 import { eq, like, desc, asc, and } from 'drizzle-orm';
-import { Movie as MovieType, MovieInput, SearchInput } from '../types';
+import { MovieInput, SearchInput } from '../types';
 import { BadRequestError } from '../utils/errors';
 
 export class Movie {
@@ -34,18 +34,27 @@ export class Movie {
 			})
 			.returning();
 
-		return result[0];
+		if (!result[0]) return undefined;
+		const movie = {
+			...result[0],
+			createdAt:
+				result[0].createdAt instanceof Date
+					? result[0].createdAt.toISOString()
+					: result[0].createdAt,
+			updatedAt:
+				result[0].updatedAt instanceof Date
+					? result[0].updatedAt.toISOString()
+					: result[0].updatedAt,
+		};
+		return movie;
 	}
 
-	static async findById(id: number): Promise<MovieType | undefined> {
+	static async findById(id: number) {
 		const result = await db.select().from(movies).where(eq(movies.id, id));
 		return result[0];
 	}
 
-	static async findByTmdbId(
-		tmdbId: string,
-		userId: number
-	): Promise<MovieType | undefined> {
+	static async findByTmdbId(tmdbId: string, userId: number) {
 		const result = await db
 			.select()
 			.from(movies)
@@ -53,10 +62,7 @@ export class Movie {
 		return result[0];
 	}
 
-	static async findByUserId(
-		userId: number,
-		params?: SearchInput
-	): Promise<MovieType[]> {
+	static async findByUserId(userId: number, params?: SearchInput) {
 		const conditions = [];
 		conditions.push(eq(movies.userId, userId));
 

@@ -1,5 +1,5 @@
 import nodemailer from 'nodemailer';
-import { User } from '../types';
+import { UserForEmail } from '../types';
 import NodemailerConfig from '../config/NodeMailer';
 import dotenv from 'dotenv';
 
@@ -10,7 +10,7 @@ export class EmailService {
 	private static readonly fromEmail = process.env.EMAIL!;
 	private static readonly clientUrl = process.env.CLIENT_URL!;
 
-	static async sendVerificationEmail(user: User, token: string): Promise<void> {
+	static async sendVerificationEmail(user: UserForEmail, token: string) {
 		const verificationLink = `${this.clientUrl}/api/v1/auth/verify-email?token=${token}`;
 
 		const mailOptions = {
@@ -40,7 +40,7 @@ export class EmailService {
 		await this.transporter.sendMail(mailOptions);
 	}
 
-	static async sendWelcomeEmail(user: User): Promise<void> {
+	static async sendWelcomeEmail(user: UserForEmail) {
 		const mailOptions = {
 			from: this.fromEmail,
 			to: user.email,
@@ -67,10 +67,10 @@ export class EmailService {
 	}
 
 	static async sendNewLoginAlert(
-		user: User,
+		user: UserForEmail,
 		ipAddress: string,
 		deviceInfo: string
-	): Promise<void> {
+	) {
 		const mailOptions = {
 			from: this.fromEmail,
 			to: user.email,
@@ -95,10 +95,7 @@ export class EmailService {
 		await this.transporter.sendMail(mailOptions);
 	}
 
-	static async sendPasswordResetEmail(
-		user: User,
-		resetCode: string
-	): Promise<void> {
+	static async sendPasswordResetEmail(user: UserForEmail, resetCode: string) {
 		const resetLink = `${this.clientUrl}/reset-password`;
 
 		const mailOptions = {
@@ -127,7 +124,7 @@ export class EmailService {
 		await this.transporter.sendMail(mailOptions);
 	}
 
-	static async sendPasswordChangeNotification(user: User): Promise<void> {
+	static async sendPasswordChangeNotification(user: UserForEmail) {
 		const mailOptions = {
 			from: this.fromEmail,
 			to: user.email,
@@ -147,10 +144,10 @@ export class EmailService {
 	}
 
 	static async sendEmailChangeNotification(
-		user: User,
+		user: UserForEmail,
 		oldEmail: string,
 		newEmail: string
-	): Promise<void> {
+	) {
 		const mailOptions = {
 			from: this.fromEmail,
 			to: oldEmail,
@@ -170,8 +167,7 @@ export class EmailService {
 		await this.transporter.sendMail(mailOptions);
 	}
 
-	//email send test
-	static async sendTestEmail(to: string): Promise<void> {
+	static async sendTestEmail(to: string) {
 		const mailOptions = {
 			from: this.fromEmail,
 			to: to,

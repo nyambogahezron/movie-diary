@@ -35,7 +35,7 @@ export class WatchlistMovie {
 		await db
 			.update(watchlists)
 			.set({
-				updatedAt: new Date().toISOString(),
+				updatedAt: new Date(),
 			})
 			.where(eq(watchlists.id, data.watchlistId));
 
@@ -51,10 +51,7 @@ export class WatchlistMovie {
 		return result[0];
 	}
 
-	static async findByWatchlistId(
-		watchlistId: number,
-		params?: SearchInput
-	): Promise<WatchlistMovieType[]> {
+	static async findByWatchlistId(watchlistId: number, params?: SearchInput) {
 		const conditions = [eq(watchlistMovies.watchlistId, watchlistId)];
 
 		const getSortColumn = (sortBy?: string) => {
@@ -81,7 +78,7 @@ export class WatchlistMovie {
 		return result;
 	}
 
-	static async findByMovieId(movieId: number): Promise<WatchlistMovieType[]> {
+	static async findByMovieId(movieId: number) {
 		const result = await db
 			.select()
 			.from(watchlistMovies)
@@ -159,7 +156,7 @@ export class WatchlistMovie {
 		await db
 			.update(watchlists)
 			.set({
-				updatedAt: new Date().toISOString(),
+				updatedAt: new Date(),
 			})
 			.where(eq(watchlists.id, entry.watchlistId));
 	}
@@ -180,7 +177,7 @@ export class WatchlistMovie {
 		await db
 			.update(watchlists)
 			.set({
-				updatedAt: new Date().toISOString(),
+				updatedAt: new Date(),
 			})
 			.where(eq(watchlists.id, watchlistId));
 	}
@@ -193,7 +190,7 @@ export class WatchlistMovie {
 		await db
 			.update(watchlists)
 			.set({
-				updatedAt: new Date().toISOString(),
+				updatedAt: new Date(),
 			})
 			.where(eq(watchlists.id, watchlistId));
 	}
@@ -212,7 +209,7 @@ export class WatchlistMovie {
 			await db
 				.update(watchlists)
 				.set({
-					updatedAt: new Date().toISOString(),
+					updatedAt: new Date(),
 				})
 				.where(eq(watchlists.id, watchlistId));
 		}

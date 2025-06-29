@@ -24,7 +24,7 @@ class WatchlistMovie {
         await db_1.db
             .update(schema_1.watchlists)
             .set({
-            updatedAt: new Date().toISOString(),
+            updatedAt: new Date(),
         })
             .where((0, drizzle_orm_1.eq)(schema_1.watchlists.id, data.watchlistId));
         return result[0];
@@ -111,7 +111,7 @@ class WatchlistMovie {
         await db_1.db
             .update(schema_1.watchlists)
             .set({
-            updatedAt: new Date().toISOString(),
+            updatedAt: new Date(),
         })
             .where((0, drizzle_orm_1.eq)(schema_1.watchlists.id, entry.watchlistId));
     }
@@ -122,7 +122,7 @@ class WatchlistMovie {
         await db_1.db
             .update(schema_1.watchlists)
             .set({
-            updatedAt: new Date().toISOString(),
+            updatedAt: new Date(),
         })
             .where((0, drizzle_orm_1.eq)(schema_1.watchlists.id, watchlistId));
     }
@@ -133,7 +133,7 @@ class WatchlistMovie {
         await db_1.db
             .update(schema_1.watchlists)
             .set({
-            updatedAt: new Date().toISOString(),
+            updatedAt: new Date(),
         })
             .where((0, drizzle_orm_1.eq)(schema_1.watchlists.id, watchlistId));
     }
@@ -149,7 +149,7 @@ class WatchlistMovie {
             await db_1.db
                 .update(schema_1.watchlists)
                 .set({
-                updatedAt: new Date().toISOString(),
+                updatedAt: new Date(),
             })
                 .where((0, drizzle_orm_1.eq)(schema_1.watchlists.id, watchlistId));
         }

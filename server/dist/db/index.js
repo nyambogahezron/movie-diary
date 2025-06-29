@@ -32,20 +32,18 @@ var __importStar = (this && this.__importStar) || (function () {
         return result;
     };
 })();
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.schema = exports.db = void 0;
-const client_1 = require("@libsql/client");
-const libsql_1 = require("drizzle-orm/libsql");
 const schema = __importStar(require("./schema"));
 exports.schema = schema;
-const dotenv_1 = __importDefault(require("dotenv"));
-dotenv_1.default.config();
-const dbUrl = process.env.DATABASE_URL || 'file:./db/database.sqlite3';
-const client = (0, client_1.createClient)({
-    url: dbUrl,
+const node_postgres_1 = require("drizzle-orm/node-postgres");
+const pg_1 = require("pg");
+const pool = new pg_1.Pool({
+    connectionString: process.env.DATABASE_URL,
 });
-exports.db = (0, libsql_1.drizzle)(client, { schema });
+exports.db = (0, node_postgres_1.drizzle)({ client: pool });
+async function testDbConnection() {
+    const result = await exports.db.execute('select 1');
+}
+testDbConnection();
 //# sourceMappingURL=index.js.map

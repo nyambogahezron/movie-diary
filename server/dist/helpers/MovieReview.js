@@ -20,12 +20,13 @@ class MovieReview {
         return newReview;
     }
     static async findById(id) {
-        const review = await db_1.db
+        const reviews = await db_1.db
             .select()
             .from(schema_1.movieReviews)
             .where((0, drizzle_orm_1.eq)(schema_1.movieReviews.id, id))
-            .get();
-        return review;
+            .limit(1)
+            .execute();
+        return reviews[0] || null;
     }
     static async findByMovieId(movieId) {
         const reviews = await db_1.db
@@ -33,7 +34,7 @@ class MovieReview {
             .from(schema_1.movieReviews)
             .where((0, drizzle_orm_1.eq)(schema_1.movieReviews.movieId, movieId))
             .orderBy((0, drizzle_orm_1.desc)(schema_1.movieReviews.createdAt))
-            .all();
+            .execute();
         return reviews;
     }
     static async findPublicByMovieId(movieId) {
@@ -42,16 +43,17 @@ class MovieReview {
             .from(schema_1.movieReviews)
             .where((0, drizzle_orm_1.and)((0, drizzle_orm_1.eq)(schema_1.movieReviews.movieId, movieId), (0, drizzle_orm_1.eq)(schema_1.movieReviews.isPublic, true)))
             .orderBy((0, drizzle_orm_1.desc)(schema_1.movieReviews.createdAt))
-            .all();
+            .execute();
         return reviews;
     }
     static async findByUserAndMovie(userId, movieId) {
-        const review = await db_1.db
+        const reviews = await db_1.db
             .select()
             .from(schema_1.movieReviews)
             .where((0, drizzle_orm_1.and)((0, drizzle_orm_1.eq)(schema_1.movieReviews.userId, userId), (0, drizzle_orm_1.eq)(schema_1.movieReviews.movieId, movieId)))
-            .get();
-        return review;
+            .limit(1)
+            .execute();
+        return reviews[0];
     }
     static async findByUserId(userId) {
         const reviews = await db_1.db
@@ -59,7 +61,7 @@ class MovieReview {
             .from(schema_1.movieReviews)
             .where((0, drizzle_orm_1.eq)(schema_1.movieReviews.userId, userId))
             .orderBy((0, drizzle_orm_1.desc)(schema_1.movieReviews.createdAt))
-            .all();
+            .execute();
         return reviews;
     }
     static async update(id, data) {
@@ -70,10 +72,11 @@ class MovieReview {
             updatedAt: (0, drizzle_orm_1.sql) `CURRENT_TIMESTAMP`,
         })
             .where((0, drizzle_orm_1.eq)(schema_1.movieReviews.id, id))
-            .run();
+            .execute();
+        return this.findById(id);
     }
     static async delete(id) {
-        await db_1.db.delete(schema_1.movieReviews).where((0, drizzle_orm_1.eq)(schema_1.movieReviews.id, id)).run();
+        await db_1.db.delete(schema_1.movieReviews).where((0, drizzle_orm_1.eq)(schema_1.movieReviews.id, id)).execute();
     }
 }
 exports.MovieReview = MovieReview;

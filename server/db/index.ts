@@ -1,16 +1,17 @@
-import { createClient } from '@libsql/client';
-import { drizzle } from 'drizzle-orm/libsql';
 import * as schema from './schema';
-import dotenv from 'dotenv';
 
-dotenv.config();
+import { drizzle } from 'drizzle-orm/node-postgres';
+import { Pool } from 'pg';
 
-const dbUrl = process.env.DATABASE_URL || 'file:./db/database.sqlite3';
-
-const client = createClient({
-	url: dbUrl,
+const pool = new Pool({
+	connectionString: process.env.DATABASE_URL,
 });
 
-export const db = drizzle(client, { schema });
+export const db = drizzle({ client: pool });
+
+async function testDbConnection() {
+	const result = await db.execute('select 1');
+}
+testDbConnection();
 
 export { schema };

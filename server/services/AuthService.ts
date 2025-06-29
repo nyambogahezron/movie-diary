@@ -9,14 +9,15 @@ import { eq } from 'drizzle-orm';
 import { BadRequestError, UnauthorizedError } from '../utils/errors';
 import { EmailService } from './EmailService';
 import Token from '../utils/signedTokens';
+import { config } from 'config';
 
 export class AuthService {
-	private static readonly JWT_SECRET = process.env.JWT_SECRET!;
-	private static readonly JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET!;
+	private static readonly JWT_SECRET = config.security.jwtSecret;
+	private static readonly JWT_REFRESH_SECRET = config.security.jwtRefreshSecret;
 	private static readonly ACCESS_TOKEN_EXPIRY = '15m';
 	private static readonly REFRESH_TOKEN_EXPIRY = '7d';
 	private static readonly RESET_TOKEN_SECRET =
-		process.env.RESET_TOKEN_SECRET || process.env.JWT_SECRET!;
+		process.env.RESET_TOKEN_SECRET || config.security.jwtSecret;
 
 	static async register(
 		name: string,
@@ -48,9 +49,38 @@ export class AuthService {
 			lastLoginAt: new Date().toISOString(),
 		});
 
-		await EmailService.sendVerificationEmail(user, emailVerificationToken);
+		await EmailService.sendVerificationEmail(
+			{
+				id: user.id,
+				username: user.username,
+				name: user.name,
+				email: user.email,
+				createdAt:
+					user.createdAt instanceof Date
+						? user.createdAt.toISOString()
+						: user.createdAt,
+				updatedAt:
+					user.updatedAt instanceof Date
+						? user.updatedAt.toISOString()
+						: user.updatedAt,
+			},
+			emailVerificationToken
+		);
 
-		await EmailService.sendWelcomeEmail(user);
+		await EmailService.sendWelcomeEmail({
+			id: user.id,
+			username: user.username,
+			name: user.name,
+			email: user.email,
+			createdAt:
+				user.createdAt instanceof Date
+					? user.createdAt.toISOString()
+					: user.createdAt,
+			updatedAt:
+				user.updatedAt instanceof Date
+					? user.updatedAt.toISOString()
+					: user.updatedAt,
+		});
 
 		return { user };
 	}
@@ -77,12 +107,22 @@ export class AuthService {
 			throw new UnauthorizedError('Please verify your email address first');
 		}
 
-		// Check if this is a new login from different IP
 		const previousIp = user.lastLoginIp;
 		if (ipAddress && previousIp && ipAddress !== previousIp) {
-			// New device detected - send notification email
 			await EmailService.sendNewLoginAlert(
-				user,
+				{
+					...user,
+					username: user.username ?? '',
+					email: user.email ?? '',
+					createdAt:
+						user.createdAt instanceof Date
+							? user.createdAt.toISOString()
+							: user.createdAt,
+					updatedAt:
+						user.updatedAt instanceof Date
+							? user.updatedAt.toISOString()
+							: user.updatedAt,
+				},
 				ipAddress,
 				deviceInfo || 'Unknown device'
 			);
@@ -99,7 +139,7 @@ export class AuthService {
 		return { token: accessToken, refreshToken, user };
 	}
 
-	static async verifyToken(token: string): Promise<UserType> {
+	static async verifyToken(token: string) {
 		try {
 			const decoded = jwt.verify(token, this.JWT_SECRET) as JwtPayload;
 
@@ -119,9 +159,7 @@ export class AuthService {
 		}
 	}
 
-	static async refreshAccessToken(
-		refreshToken: string
-	): Promise<{ accessToken: string }> {
+	static async refreshAccessToken(refreshToken: string) {
 		try {
 			const decoded = jwt.verify(
 				refreshToken,
@@ -149,7 +187,7 @@ export class AuthService {
 		}
 	}
 
-	static async verifyEmail(token: string): Promise<UserType> {
+	static async verifyEmail(token: string) {
 		const user = await User.verifyEmail(token);
 
 		if (!user) {
@@ -168,7 +206,6 @@ export class AuthService {
 
 		// Generate a 6-digit reset code
 		const resetCode = Token.generateResetCode();
-		// Hash the reset code for storage
 		const hashedResetToken = Token.hashResetCode(resetCode, user.id);
 		const resetExpires = new Date(Date.now() + 60 * 60 * 1000).toISOString(); // 1 hour
 
@@ -177,30 +214,35 @@ export class AuthService {
 			.set({
 				passwordResetToken: hashedResetToken,
 				passwordResetExpires: resetExpires,
-				updatedAt: new Date().toISOString(),
+				updatedAt: new Date(),
 			})
 			.where(eq(users.id, user.id));
 
 		// Send the plain text code to the user's email
-		await EmailService.sendPasswordResetEmail(user, resetCode);
+		await EmailService.sendPasswordResetEmail(
+			{
+				id: user.id,
+				username: user.username,
+				name: user.name,
+				email: user.email,
+			},
+			resetCode
+		);
 
 		return;
 	}
 
 	static async resetPassword(code: string, email: string, newPassword: string) {
-		// First find user by email
 		const user = await User.findByEmail(email);
 
 		if (!user) {
 			throw new BadRequestError('User not found');
 		}
 
-		// Check if user has a reset token
 		if (!user.passwordResetToken) {
 			throw new BadRequestError('No reset code requested');
 		}
 
-		// Check if reset code has expired based on passwordResetExpires field
 		if (
 			user.passwordResetExpires &&
 			new Date(user.passwordResetExpires) < new Date()
@@ -222,11 +264,16 @@ export class AuthService {
 				password: hashedPassword,
 				passwordResetToken: null,
 				passwordResetExpires: null,
-				updatedAt: new Date().toISOString(),
+				updatedAt: new Date(),
 			})
 			.where(eq(users.id, user.id));
 
-		await EmailService.sendPasswordChangeNotification(user);
+		await EmailService.sendPasswordChangeNotification({
+			id: user.id,
+			username: user.username,
+			name: user.name,
+			email: user.email,
+		});
 	}
 
 	static async updateEmail(userId: number, newEmail: string) {
@@ -258,10 +305,27 @@ export class AuthService {
 			})
 			.where(eq(users.id, userId));
 
-		await EmailService.sendEmailChangeNotification(user, oldEmail, newEmail);
+		await EmailService.sendEmailChangeNotification(
+			{
+				id: user.id,
+				username: user.username,
+				name: user.name,
+				email: user.email,
+			},
+			oldEmail ?? '',
+			newEmail
+		);
 
 		user.email = newEmail;
-		await EmailService.sendVerificationEmail(user, verificationToken);
+		await EmailService.sendVerificationEmail(
+			{
+				id: user.id,
+				username: user.username,
+				name: user.name,
+				email: user.email,
+			},
+			verificationToken
+		);
 	}
 
 	private static generateTokens(
@@ -277,20 +341,14 @@ export class AuthService {
 		return { accessToken, refreshToken };
 	}
 
-	private static generateAccessToken(
-		user: UserType,
-		deviceInfo?: string
-	): string {
+	private static generateAccessToken(user: UserType, deviceInfo?: string) {
 		return jwt.sign({ userId: user.id, deviceInfo }, this.JWT_SECRET, {
 			expiresIn: this.ACCESS_TOKEN_EXPIRY,
 			algorithm: 'HS256',
 		});
 	}
 
-	private static generateRefreshToken(
-		user: UserType,
-		deviceInfo?: string
-	): string {
+	private static generateRefreshToken(user: UserType, deviceInfo?: string) {
 		return jwt.sign({ userId: user.id, deviceInfo }, this.JWT_REFRESH_SECRET, {
 			expiresIn: this.REFRESH_TOKEN_EXPIRY,
 			algorithm: 'HS256',

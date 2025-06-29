@@ -38,7 +38,7 @@ export class Favorite {
 		return result[0];
 	}
 
-	static async delete(userId: number, movieId: number): Promise<void> {
+	static async delete(userId: number, movieId: number) {
 		await db
 			.delete(favorites)
 			.where(and(eq(favorites.userId, userId), eq(favorites.movieId, movieId)));

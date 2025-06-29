@@ -3,7 +3,6 @@ import { Movie } from '../helpers/Movie';
 import {
 	Watchlist as WatchlistType,
 	WatchlistInput,
-	Movie as MovieType,
 	User,
 	SearchInput,
 } from '../types';

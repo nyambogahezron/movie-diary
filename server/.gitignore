@@ -11,3 +11,5 @@ coverage/
 uploads/**/*
 !uploads/.gitkeep
 !uploads/avatars/.gitkeep
+
+/generated/prisma

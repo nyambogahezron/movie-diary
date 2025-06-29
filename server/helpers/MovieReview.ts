@@ -1,5 +1,5 @@
 import { db } from '../db';
-import { movieReviews, movies } from '../db/schema';
+import { movieReviews } from '../db/schema';
 import { eq, and, desc, sql } from 'drizzle-orm';
 import { MovieReviewInput } from '../types';
 
@@ -24,12 +24,13 @@ export class MovieReview {
 	}
 
 	static async findById(id: number) {
-		const review = await db
+		const reviews = await db
 			.select()
 			.from(movieReviews)
 			.where(eq(movieReviews.id, id))
-			.get();
-		return review;
+			.limit(1)
+			.execute();
+		return reviews[0] || null;
 	}
 
 	static async findByMovieId(movieId: number) {
@@ -38,7 +39,7 @@ export class MovieReview {
 			.from(movieReviews)
 			.where(eq(movieReviews.movieId, movieId))
 			.orderBy(desc(movieReviews.createdAt))
-			.all();
+			.execute();
 
 		return reviews;
 	}
@@ -51,21 +52,22 @@ export class MovieReview {
 				and(eq(movieReviews.movieId, movieId), eq(movieReviews.isPublic, true))
 			)
 			.orderBy(desc(movieReviews.createdAt))
-			.all();
+			.execute();
 
 		return reviews;
 	}
 
 	static async findByUserAndMovie(userId: number, movieId: number) {
-		const review = await db
+		const reviews = await db
 			.select()
 			.from(movieReviews)
 			.where(
 				and(eq(movieReviews.userId, userId), eq(movieReviews.movieId, movieId))
 			)
-			.get();
+			.limit(1)
+			.execute();
 
-		return review;
+		return reviews[0];
 	}
 
 	static async findByUserId(userId: number) {
@@ -74,7 +76,7 @@ export class MovieReview {
 			.from(movieReviews)
 			.where(eq(movieReviews.userId, userId))
 			.orderBy(desc(movieReviews.createdAt))
-			.all();
+			.execute();
 
 		return reviews;
 	}
@@ -87,10 +89,12 @@ export class MovieReview {
 				updatedAt: sql`CURRENT_TIMESTAMP`,
 			})
 			.where(eq(movieReviews.id, id))
-			.run();
+			.execute();
+
+		return this.findById(id);
 	}
 
 	static async delete(id: number) {
-		await db.delete(movieReviews).where(eq(movieReviews.id, id)).run();
+		await db.delete(movieReviews).where(eq(movieReviews.id, id)).execute();
 	}
 }

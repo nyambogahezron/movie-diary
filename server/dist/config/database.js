@@ -36,16 +36,22 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.schema = exports.db = void 0;
-const client_1 = require("@libsql/client");
-const libsql_1 = require("drizzle-orm/libsql");
+exports.prisma = exports.schema = exports.db = void 0;
+const node_postgres_1 = require("drizzle-orm/node-postgres");
+const client_1 = require("@prisma/client");
+const pg_1 = require("pg");
 const schema = __importStar(require("../db/schema"));
 exports.schema = schema;
 const dotenv_1 = __importDefault(require("dotenv"));
 dotenv_1.default.config();
-const dbUrl = process.env.DATABASE_URL || 'file:./db/database.sqlite3';
-const client = (0, client_1.createClient)({
-    url: dbUrl,
+// Initialize Prisma Client with Accelerate
+const prisma = new client_1.PrismaClient({
+    datasourceUrl: process.env.DATABASE_URL,
 });
-exports.db = (0, libsql_1.drizzle)(client, { schema });
+exports.prisma = prisma;
+// Initialize PostgreSQL pool for Drizzle
+const pool = new pg_1.Pool({
+    connectionString: process.env.DATABASE_URL,
+});
+exports.db = (0, node_postgres_1.drizzle)({ client: pool, schema });
 //# sourceMappingURL=database.js.map

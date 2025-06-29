@@ -2,7 +2,6 @@ import bcrypt from 'bcrypt';
 import { db } from '../db';
 import { users } from '../db/schema';
 import { eq } from 'drizzle-orm';
-import { User as UserType } from '../types';
 import { BadRequestError } from '../utils/errors';
 
 export class User {
@@ -18,7 +17,7 @@ export class User {
 		passwordResetExpires?: string;
 		lastLoginIp?: string;
 		lastLoginAt?: string;
-	}): Promise<UserType> {
+	}) {
 		const hashedPassword = await bcrypt.hash(userData.password, 10);
 
 		const result = await db
@@ -39,7 +38,7 @@ export class User {
 			})
 			.returning();
 
-		return result[0] as UserType;
+		return result[0];
 	}
 
 	static async findByEmail(email: string) {
@@ -47,12 +46,12 @@ export class User {
 			.select()
 			.from(users)
 			.where(eq(users.email, email.toLowerCase()));
-		return result[0] as UserType;
+		return result[0];
 	}
 
 	static async findById(id: number) {
 		const result = await db.select().from(users).where(eq(users.id, id));
-		return result[0] as UserType;
+		return result[0];
 	}
 
 	static async findByUsername(username: string) {
@@ -60,7 +59,7 @@ export class User {
 			.select()
 			.from(users)
 			.where(eq(users.username, username));
-		return result[0] as UserType;
+		return result[0];
 	}
 
 	static async findUser(identifier: string) {
@@ -87,7 +86,7 @@ export class User {
 	static async updateAvatar(userId: number, avatar: string) {
 		await db
 			.update(users)
-			.set({ avatar, updatedAt: new Date().toISOString() })
+			.set({ avatar, updatedAt: new Date() })
 			.where(eq(users.id, userId));
 	}
 
@@ -101,7 +100,7 @@ export class User {
 			.set({
 				lastLoginIp: ip,
 				lastLoginAt: timestamp,
-				updatedAt: new Date().toISOString(),
+				updatedAt: new Date(),
 			})
 			.where(eq(users.id, userId));
 	}
@@ -116,7 +115,7 @@ export class User {
 			throw new BadRequestError('Invalid email verification token');
 		}
 
-		const user = result[0] as UserType;
+		const user = result[0];
 
 		if (user.isEmailVerified) {
 			throw new BadRequestError('Email is already verified');
@@ -138,7 +137,7 @@ export class User {
 				isEmailVerified: true,
 				emailVerificationToken: null,
 				emailVerificationExpires: null,
-				updatedAt: new Date().toISOString(),
+				updatedAt: new Date(),
 			})
 			.where(eq(users.id, user.id));
 
@@ -152,7 +151,7 @@ export class User {
 			.update(users)
 			.set({
 				password: hashedPassword,
-				updatedAt: new Date().toISOString(),
+				updatedAt: new Date(),
 			})
 			.where(eq(users.id, userId));
 	}
@@ -163,7 +162,7 @@ export class User {
 			.set({
 				email: email.toLowerCase(),
 				isEmailVerified: false,
-				updatedAt: new Date().toISOString(),
+				updatedAt: new Date(),
 			})
 			.where(eq(users.id, userId));
 	}

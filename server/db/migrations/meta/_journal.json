@@ -1,18 +1,19 @@
 {
-  "version": "5",
+  "version": "7",
+  "dialect": "postgresql",
   "entries": [
     {
       "idx": 0,
-      "version": "6",
-      "when": 1750891172620,
-      "tag": "0000_harsh_fat_cobra",
+      "version": "7",
+      "when": 1751126796901,
+      "tag": "0000_burly_goliath",
       "breakpoints": true
     },
     {
       "idx": 1,
-      "version": "6",
-      "when": 1751058495064,
-      "tag": "0001_secret_hiroim",
+      "version": "7",
+      "when": 1751193013629,
+      "tag": "0001_easy_iceman",
       "breakpoints": true
     }
   ]

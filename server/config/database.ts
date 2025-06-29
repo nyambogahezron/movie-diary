@@ -1,16 +1,16 @@
-import { createClient } from '@libsql/client';
-import { drizzle } from 'drizzle-orm/libsql';
+import { drizzle } from 'drizzle-orm/node-postgres';
+import { PrismaClient } from '@prisma/client';
+import { Pool } from 'pg';
 import * as schema from '../db/schema';
-import dotenv from 'dotenv';
 
-dotenv.config();
-
-const dbUrl = process.env.DATABASE_URL || 'file:./db/database.sqlite3';
-
-const client = createClient({
-	url: dbUrl,
+const prisma = new PrismaClient({
+	datasourceUrl: process.env.DATABASE_URL,
 });
 
-export const db = drizzle(client, { schema });
+const pool = new Pool({
+	connectionString: process.env.DATABASE_URL,
+});
 
-export { schema };
+export const db = drizzle({ client: pool, schema });
+
+export { schema, prisma };

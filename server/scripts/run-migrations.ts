@@ -49,7 +49,7 @@ async function runMigrations() {
 		console.log('Migration generation completed:', generateOutput);
 
 		// Step 2: Apply migrations to database
-		const dbUrl = process.env.DATABASE_URL || 'file:./db/database.sqlite3';
+		const dbUrl = process.env.DATABASE_URL!;
 		const client = createClient({ url: dbUrl });
 		const db = drizzle(client, { schema });
 

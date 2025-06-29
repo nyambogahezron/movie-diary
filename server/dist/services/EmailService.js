@@ -144,7 +144,6 @@ class EmailService {
         };
         await this.transporter.sendMail(mailOptions);
     }
-    //email send test
     static async sendTestEmail(to) {
         const mailOptions = {
             from: this.fromEmail,

@@ -94,8 +94,10 @@ export class Watchlist {
 		await db
 			.update(watchlists)
 			.set({
-				...watchlistData,
-				updatedAt: new Date().toISOString(),
+				...Object.fromEntries(
+					Object.entries(watchlistData).filter(([key]) => key !== 'createdAt')
+				),
+				updatedAt: new Date(),
 			})
 			.where(eq(watchlists.id, id));
 	}
@@ -128,7 +130,7 @@ export class Watchlist {
 		await db
 			.update(watchlists)
 			.set({
-				updatedAt: new Date().toISOString(),
+				updatedAt: new Date(),
 			})
 			.where(eq(watchlists.id, watchlistId));
 	}
@@ -146,7 +148,7 @@ export class Watchlist {
 		await db
 			.update(watchlists)
 			.set({
-				updatedAt: new Date().toISOString(),
+				updatedAt: new Date(),
 			})
 			.where(eq(watchlists.id, watchlistId));
 	}

@@ -79,7 +79,7 @@ async function runMigrations() {
         const generateOutput = await runDrizzleKit('generate');
         console.log('Migration generation completed:', generateOutput);
         // Step 2: Apply migrations to database
-        const dbUrl = process.env.DATABASE_URL || 'file:./db/database.sqlite3';
+        const dbUrl = process.env.DATABASE_URL;
         const client = (0, client_1.createClient)({ url: dbUrl });
         const db = (0, libsql_1.drizzle)(client, { schema });
         console.log('Applying migrations to database...');

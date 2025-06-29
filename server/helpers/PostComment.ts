@@ -53,7 +53,7 @@ export class PostComment {
 			.update(postComments)
 			.set({
 				content,
-				updatedAt: new Date().toISOString(),
+				updatedAt: new Date(),
 			})
 			.where(eq(postComments.id, id));
 	}

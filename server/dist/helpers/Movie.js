@@ -30,7 +30,18 @@ class Movie {
             userId: movieData.userId,
         })
             .returning();
-        return result[0];
+        if (!result[0])
+            return undefined;
+        const movie = {
+            ...result[0],
+            createdAt: result[0].createdAt instanceof Date
+                ? result[0].createdAt.toISOString()
+                : result[0].createdAt,
+            updatedAt: result[0].updatedAt instanceof Date
+                ? result[0].updatedAt.toISOString()
+                : result[0].updatedAt,
+        };
+        return movie;
     }
     static async findById(id) {
         const result = await db_1.db.select().from(schema_1.movies).where((0, drizzle_orm_1.eq)(schema_1.movies.id, id));
